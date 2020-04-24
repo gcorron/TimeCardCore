@@ -1,0 +1,250 @@
+﻿@model TimeCardCore.Models.WorkViewModel
+<style>
+    .work-col-1 {
+        width: 5%;
+    }
+
+    .work-col-2 {
+        width: 18%;
+    }
+</style>
+
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#edit">Edit</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#summary">Summary by Period</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#summaryJob">Summary by Job</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active fade show" id="edit">
+        @using (Html.BeginForm("Index", "Work", FormMethod.Post, new { id = "formWork" }))
+        {
+            <div class="card">
+                <div class="card-header">
+                    <div class="form-group row">
+                        @Html.LabelFor(m => m.SelectedCycle, "Work Period", new { @class = "col-md-2 col-form-label" })
+                        <div class="col-md-3">
+                            @Html.DropDownListFor(m => m.SelectedCycle, Model.PayCycles, new { @class = "form-control" })
+                        </div>
+                        <div class="col-md-2 text-right">
+                            <button class="btn btn-success" type="button" id="btnGetCards">Get Time Cards</button>
+                        </div>
+                        <div class="col-md-5 alert alert-warning" id="alertHeader" style="display:none;"></div>
+                    </div>
+                </div>
+                <div id="divEdit" class="card-body @(Model.EditWork.WorkId == 0 ? "bg-success" : "bg-info" )">
+                    <div class="form-group form-row">
+                        <label class="col-form-label col-md-1">Date</label>
+                        <div class="col-md-1">
+                            @Html.DropDownListFor(m => m.EditWork.WorkDay, Model.EditDays, new { @class = "form-control" })
+                        </div>
+                        <label class="col-form-label col-md-1 text-right">Job</label>
+                        <div class="col-md-3">
+                            @Html.DropDownListFor(m => m.EditWork.JobId, Model.Jobs, new { @class = "form-control" })
+                        </div>
+                        <div class="col-md-1 col-form-label text-right">Type</div>
+                        <div class="col-md-2">@Html.DropDownListFor(m => m.EditWork.WorkType, Model.WorkTypes, new { @class = "form-control" })</div>
+                        <label class="col-form-label col-md-1">Hours</label>
+                        <div class="col-md-1">
+                            @Html.TextBoxFor(m => m.EditWork.Hours, new { @class = "form-control", type = "number", min = "0", max = "4", step = "0.25" })
+                        </div>
+                        <div class="col-md-1 text-right">
+                            <button class="btn btn-default fa fa-2x fa-check" name="buttonValue" value="Save"></button>
+                        </div>
+                        @Html.HiddenFor(m => m.EditWork.WorkId)
+                        @Html.HiddenFor(m => m.EditWork.WorkDay)
+                        @Html.HiddenFor(m => m.EditWork.JobId)
+                        @Html.HiddenFor(m => m.EditWork.ContractorId)
+                    </div>
+                    <div class="form-group form-row">
+                        <label class="col-form-label col-md-1">Descr</label>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(m => m.EditWork.Descr, new { @class = "form-control", style = "min-width:100%;" })
+                        </div>
+                        <div id="divEditButtons" class="col-md-2 text-right" style='@(Model.EditWork.WorkId == 0 ? "display:none;" : "")'>
+                            <button class="btn btn-default fa fa-2x fa-plus" type="button" id="btnAdd"></button>
+                            <button class="btn btn-default fa fa-2x fa-times" name="buttonValue" value="Delete" onclick="return confirm('Delete are you sure?');"></button>
+                        </div>
+                    </div>
+                    <div id="saveAlert" class="alert alert-danger offset-1 col-md-10" style="display:none;">
+                        @Html.ValidationSummary()
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3" style="max-height:450px; overflow-y:auto; position:relative;">
+                <div class="col-md-12">
+                    <table class="table table-sm table-striped table-hover">
+                        <thead class="sticky">
+                            <tr>
+                                <th class="work-col-1">Date</th>
+                                <th class="work-col-2">Job</th>
+                                <th class="work-col-1 text-right">Hours</th>
+                                <th class="work-col-1">Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ foreach (var entry in Model.WorkEntries)
+                                {
+                                    <tr class="work-row" data-edit=@(Json.Serialize(new  { entry.WorkId, entry.JobId, entry.WorkDay,entry.WorkType }))>
+                                        <td class="work-col-1">@entry.WorkDate</td>
+                                        <td class="work-col-2">@entry.Job</td>
+                                        <td class="work-col-1 text-right">@entry.Hours</td>
+                                        <td class="work-col-1">@entry.WorkTypeDescr</td>
+                                        <td>@entry.Descr</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @Html.HiddenFor(m => m.Contractor.Id)
+            @Html.HiddenFor(m => m.Contractor.Descr)
+        }
+    </div>
+    <div class="tab-pane fade" id="summary">
+
+    </div>
+    <div class="tab-pane fade" id="summaryJob">
+
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(function () {
+        $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
+            $("#formWork").submit();
+        });
+        $("tr.work-row").click(function () {
+            $(this).addClass("bg-info").siblings().removeClass("bg-info");
+            var data = $(this).data("edit");
+            console.log(data);
+            $("#@Html.IdFor(m => m.EditWork.WorkId)").val(data.WorkId);
+            $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(data.WorkDay.toString());
+            $("#@Html.IdFor(m => m.EditWork.JobId)").val(data.JobId);
+            var cells = $(this).find("td").map(function () { return $(this).text(); });
+            $("#@Html.IdFor(m => m.EditWork.Hours)").val(cells[2]);
+            $("#@Html.IdFor(m => m.EditWork.WorkType)").val(data.WorkType);
+            $("#@Html.IdFor(m => m.EditWork.Descr)").val(cells[4]);
+            $("#divEdit").addClass("bg-info").removeClass("bg-success");
+            showEditButtons();
+        });
+
+        $("#btnAdd").click(function () {
+            $("#divEdit").addClass("bg-success").removeClass("bg-info");
+            $("#@Html.IdFor(m => m.EditWork.WorkId)").val(0);
+            var today = getToday();
+            var workDay = $("#@Html.IdFor(m => m.EditWork.WorkDay) option:contains('" + today + "')");
+            if (workDay.length) {
+                $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(workDay.val());
+            }
+            $("#@Html.IdFor(m => m.EditWork.Hours)").val(0);
+            $("#@Html.IdFor(m => m.EditWork.Descr)").val("");
+            showEditButtons();
+        });
+
+        $("#btnGetCards").click(function () {
+            var $btn = $(this);
+            buttonBusy($btn);
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GenerateDocs", "Work")',
+                data: { contractorId: @Model.EditWork.ContractorId, cycle: @Model.SelectedCycle },
+                success: function (result) {
+                    console.log(result);
+                    buttonUnbusy($btn);
+                    if (result.success) {
+                        window.location = '@Url.Action("DownloadTimeDocs", "Work")' + "?upd=" + new Date().getTime(); //prevent browser caching
+                    }
+                    else {
+                        buttonUnbusy($btn);
+                        showAlertHeader(result.message);
+                    }
+                },
+                error: function () {
+                    buttonUnbusy($btn);
+                    showAlertHeader("Server Error");
+                }
+            });
+        });
+
+        if ($("#saveAlert div.validation-summary-valid").length == 0) {
+            $("#saveAlert").show();
+        }
+
+        $('a[href="#summary"]').on("show.bs.tab", function (e) {
+            $("#summary").html("Loading ...");
+             $.ajax({
+                 type: "POST",
+                 url: '@Url.Action("WorkSummary","Work")',
+                 data: { contractorId: $("#@Html.IdFor(m => m.Contractor.Id)").val() },
+                success: function (html) {
+                    $("#summary").html(html);
+                }
+            });
+        });
+
+        $('a[href="#summaryJob"]').on("show.bs.tab", function (e) {
+            $("#summaryJob").html("Loading ...");
+             $.ajax({
+                 type: "POST",
+                 url: '@Url.Action("WorkSummaryJob","Work")',
+                 data: { contractorId: $("#@Html.IdFor(m => m.Contractor.Id)").val() },
+                success: function (html) {
+                    $("#summaryJob").html(html);
+                }
+            });
+        });
+    })
+
+    function getToday() {
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth() + 1; //January is 0!
+
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+
+        return mm + '/' + dd;
+    }
+
+    function buttonBusy(btn) {
+        if (btn.find("span.spinner-border").length == 0) {
+            btn.append('<span class="spinner-border spinner-border-sm"></span>');
+        }
+    }
+    function buttonUnbusy(btn) {
+        btn.find("span.spinner-border").remove();
+    }
+    function showAlertHeader(message) {
+        var alert = $("#alertHeader");
+        alert.html(message).show();
+        setTimeout(function () { alert.hide(); }, 5000);
+    }
+
+    function showEditButtons() {
+        var newWork = $("#@Html.IdFor(m => m.EditWork.WorkId)").val() == 0;
+        if (newWork) {
+            $("#divEditButtons").hide();
+        }
+        else {
+            $("#divEditButtons").show();
+        }
+    }
+
+
+    </script>
+
+}

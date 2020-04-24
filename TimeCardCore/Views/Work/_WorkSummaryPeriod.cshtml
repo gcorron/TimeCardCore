@@ -1,0 +1,33 @@
+﻿@model IEnumerable<TimeCard.Domain.WorkSummary>
+<div class="row mt-3" style="max-height:700px; overflow-y:auto; position:relative;">
+    <div class="col-md-8 offset-2">
+        <table class="table table-bordered table-hover table-sm">
+            <thead class="sticky">
+                <tr>
+                    <th style="width:25%;">Work Period</th>
+                    <th style="width:45%;">Job</th>
+                    <th style="width:15%;" class="text-right">Hours</th>
+                    <th style="width:15%;" class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ foreach (var group in Model.OrderBy(x => x.WorkPeriod).ThenBy(x => x.Descr).GroupBy(x => x.WorkPeriod))
+                    {
+                        int i = 0;
+                        foreach (var row in group)
+                        {
+                            <tr>
+                                @Html.Raw(i == 0 ? $"<td rowspan=\"{group.Count()}\"</td>{row.WorkPeriodDescr}</td>" : "")
+                                <td>@row.Descr</td>
+                                <td class="hours-col text-right">@row.Hours</td>
+                                @Html.Raw(i == 0 ? $"<td class=\"hours-col text-right align-bottom\" rowspan=\"{group.Count()}\"</td>{group.Sum(x => x.Hours)}</td>" : "")
+                            </tr>
+                            i++;
+                        }
+                    }
+                }
+            </tbody>
+
+        </table>
+    </div>
+</div>
