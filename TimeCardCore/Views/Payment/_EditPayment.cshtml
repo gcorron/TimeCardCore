@@ -1,0 +1,74 @@
+﻿@model TimeCardCore.Models.PaymentViewModel
+
+
+<form id="formPayment">
+
+    @Html.HiddenFor(m => m.SelectedContractorId)
+    @Html.HiddenFor(m => m.SelectedJobId)
+    @Html.HiddenFor(m => m.EditPayment.PayId)
+    @Html.HiddenFor(m => m.JobIsTimeCard)
+    @{
+        if (Model.SelectedJobId != 0)
+        {
+            <div class="card mt-3">
+                <div class="card-header form-group row">
+                    <div class="col-md-2">@(Model.SelectedJob?.Client)</div>
+                    <div class="col-md-2">@(Model.SelectedJob?.Project)</div>
+                    <div class="col-md-2">@(Model.SelectedJob?.BillTypeDescr)</div>
+                </div>
+                <div class="card-body @(Model.EditPayment.PayId == 0 ? "bg-success" : "bg-info" )" id="divEdit" style=@(Model.CanEdit ? "" : "display:none;")>
+                    <div class="form-group form-row">
+                        <div class="col-md-1 col-form-label text-right">Date</div>
+                        <div class="col-md-2">@Html.TextBoxFor(m => m.EditPayment.PayDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", @placeholder = "Enter Date" })</div>
+                        <div class="col-md-1 col-form-label text-right">Amount</div>
+
+                        <div class="col-md-2">@Html.TextBoxFor(m => m.EditPayment.Hours, new { @class = "form-control", type = "number", min = "0", max = "400", step = "0.25" })</div>
+                        <div class="col-md-1 col-form-label text-right">Check #</div>
+                        <div class="col-md-2">@Html.TextBoxFor(m => m.EditPayment.CheckNo, new { @class = "form-control", type = "number", maxlength = "5" })</div>
+                        <div class="col-md-3 text-right">
+                            <button class="btn btn-default fa fa-2x fa-plus edit-button" type="button" id="btnAdd" title="Add" style="display:none;"></button>
+                            <button class="btn btn-default fa fa-2x fa-times edit-button cancel" style="display:none;" value="Delete" title="Delete" type="button"></button>
+                            <button class="btn btn-default fa fa-2x fa-check" value="Save" title="Save" type="button"></button>
+                        </div>
+                    </div>
+                    @{ if (Model.TimeCardsUnpaid != null)
+                        {
+                            <div class="form-group form-row">
+                                <div class="col-md-2 offset-5 col-form-label text-right">Work Period</div>
+                                <div class="col-md-2">@Html.DropDownListFor(m => m.EditPayment.WorkDay, Model.TimeCardsUnpaid, new { @class = "form-control" }) </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    }
+    <div class="row mt-3" style="max-height:450px; overflow-y:auto; position:relative;">
+        <div class="col-md-12">
+            <table class="table table-sm table-striped table-hover">
+                <thead class="sticky">
+                    <tr>
+                        <th style="width:15%;">Date</th>
+                        <th class="text-right" style="width:15%;">Hours</th>
+                        <th style="width:15%;">Check No.</th>
+                        <th>@(Model.JobIsTimeCard ? "Work Period" : "")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int i = 0, j = Model.Payments.Count();
+                        foreach (var payment in Model.Payments)
+                        {
+                            i++;
+                            <tr class="payment-row" data-edit=@(Json.Serialize(new  { payment.PayId }))>
+                                <td style="width:15%;">@($"{payment.PayDate:MM/dd/yyyy}")</td>
+                                <td style="width:15%;" class="text-right">@payment.Hours</td>
+                                <td style="width:15%;">@payment.CheckNo</td>
+                                <td>@(Model.WorkDate(Model.JobIsTimeCard ? payment.WorkDay : 0)) </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>

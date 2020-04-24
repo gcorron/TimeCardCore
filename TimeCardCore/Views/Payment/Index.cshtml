@@ -1,0 +1,137 @@
+﻿@model TimeCardCore.Models.PaymentViewModel
+
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#summary">Summary</a>
+
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#edit">Edit</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active fade show" id="summary">
+        @Html.Partial("_PaymentSummary", Model)
+    </div>
+    <div class="tab-pane fade" id="edit">
+        @Html.Partial("_EditPayment", Model)
+    </div>
+</div>
+@section scripts {
+    <script>
+    $(function () {
+        $('a[href="#summary"]').on("show.bs.tab", function (e) {
+            submitPaymentForm("Summary",'#summary')
+        });
+
+        $("#summary").on("click", ".summary-row", function (e) {
+            if ($(e.target).prop("tagName") == "BUTTON") {
+                return;
+            }
+            id = $(this).data("edit").JobId;
+            editPayments(id);
+        });
+
+        $("#edit").on("click","tr.payment-row", function () {
+            $(this).addClass("bg-info").siblings().removeClass("bg-info");
+            var data = $(this).data("edit");
+            $("#@Html.IdFor(m => m.EditPayment.PayId)").val(data.PayId);
+            var theDate = $(this).find('td').eq(0).html();
+            theDate = theDate.substr(6, 4) + "-" + theDate.substr(0, 5).replace("/","-");
+            $("#@Html.IdFor(m => m.EditPayment.PayDate)").val(theDate);
+            $("#@Html.IdFor(m => m.EditPayment.Hours)").val($(this).find('td').eq(1).html());
+            $("#@Html.IdFor(m => m.EditPayment.CheckNo)").val($(this).find('td').eq(2).html());
+            $("#divEdit").addClass("bg-info").removeClass("bg-success");
+            showEditButtons();
+        });
+
+        $("#edit").on("click", "button", function () {
+            switch ($(this).prop('title')) {
+                case 'Add':
+            $("#divEdit").addClass("bg-success").removeClass("bg-info");
+            $("#@Html.IdFor(m => m.EditPayment.PayId)").val(0);
+            $("#@Html.IdFor(m => m.EditPayment.PayDate)").val(getToday());
+            $("#@Html.IdFor(m => m.EditPayment.Hours)").val(0);
+            $("#@Html.IdFor(m => m.EditPayment.CheckNo)").val('');
+            showEditButtons();
+                    break;
+                case 'Delete':
+                    if (confirm("Delete - are you sure?")) {
+                        submitPaymentForm("Delete", "#edit");
+                    }
+                    break;
+                case 'Save':
+                    var $form = $(this).closest('form');
+                    console.log($form);
+                    $.validator.unobtrusive.parse($form);
+                    $form.validate();
+                    if ($form.valid()) {
+                        submitPaymentForm("Save", "#edit");
+                    }
+                    break;
+            }
+        });
+
+        $("#edit").on("change","#@Html.IdFor(m => m.EditPayment.WorkDay)", function () {
+            var arr = $(this).find("option:selected").text().split(" ");
+            if (arr.length == 2) {
+                $("#@Html.IdFor(m => m.EditPayment.Hours)").val(arr[1]);
+            }
+        });
+
+    });
+
+    function editPayments(id) {
+        $("#@Html.IdFor(m => m.SelectedJobId)").val(id);
+        submitPaymentForm(null,"#edit");
+     }
+
+        function submitPaymentForm(buttonValue, div) {
+            $.ajax({
+                type: "POST",
+                url: "/Payment/Index",
+                data: $("#formPayment").serialize() + (buttonValue ? "&buttonValue=" + buttonValue : ""),
+                success: function (html) {
+                    $(div).html(html);
+                    $('a[href="' + div + '"]').tab("show");
+                    if (div == "edit") {
+                        showEditButtons();
+                    }
+                },
+                error: function () {
+                    console.log("/Payment/Index threw an error");
+                }
+            });
+        }
+
+    function showEditButtons() {
+        var newWork = $("#@Html.IdFor(m => m.EditPayment.PayId)").val() == 0;
+        if (newWork) {
+            $("button.edit-button").hide();
+        }
+        else {
+            $("button.edit-button").show();
+        }
+    }
+
+    function getToday() {
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth() + 1; //January is 0!
+        var yyyy = today.getFullYear();
+
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+
+        return yyyy + '-' + mm + '-' + dd;
+    }
+
+
+
+    </script>
+}
