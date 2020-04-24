@@ -8,6 +8,8 @@
     <title>@ViewData["Title"] - TimeCard</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.css" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/v4-shims.css" />
     <link rel="icon" href="~/favicon.ico?v=2)" />
 </head>
 <body>
@@ -20,10 +22,15 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    @{ var contractor = Newtonsoft.Json.JsonConvert.DeserializeObject(HttpContextAccessor.HttpContext.Session.GetString("Contractor"), typeof(TimeCard.Domain.Lookup)) as TimeCard.Domain.Lookup;
-                        if (contractor != null)
+                    @{
+                        var contractorString = HttpContextAccessor.HttpContext.Session.GetString("Contractor");
+                        if (contractorString != null)
                         {
-                            <p class="nav navbar-text navbar-right">You are logged in as @contractor.Descr</p>
+                            var contractor = Newtonsoft.Json.JsonConvert.DeserializeObject(contractorString, typeof(TimeCard.Domain.Lookup)) as TimeCard.Domain.Lookup;
+                            if (contractor != null)
+                            {
+                                <p class="nav navbar-text navbar-right">You are logged in as @contractor.Descr</p>
+                            }
                         }
 
                     }

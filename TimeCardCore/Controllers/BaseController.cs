@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using TimeCard.Repo.Repos;
-
+using Microsoft.AspNetCore.Http;
 
 namespace TimeCardCore.Controllers
 {
@@ -17,6 +17,8 @@ namespace TimeCardCore.Controllers
         
         private readonly IWebHostEnvironment  _webHostEnvironment;
         private int _curUserId;
+        protected readonly ISession Session;
+
         protected int CurrentUserId
         {
             get
@@ -37,10 +39,12 @@ namespace TimeCardCore.Controllers
             }
         }
 
-        public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment) : base()
+        public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base()
         {
             ConnString = config.GetConnectionString("TimeCard");
             _webHostEnvironment = webHostEnvironment;
+            Session = httpContextAccessor.HttpContext.Session;
+
             LookupRepo = new LookupRepo(ConnString);
         }
 

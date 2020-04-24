@@ -20,19 +20,18 @@ namespace TimeCardCore.Controllers
     {
         private readonly WorkRepo _WorkRepo;
         private readonly PaymentRepo _PaymentRepo;
-        private readonly ISession session;
+        
 
-        public WorkController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment)
+        public WorkController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)
         {
             _WorkRepo = new WorkRepo(ConnString);
             _PaymentRepo = new PaymentRepo(ConnString);
-            this.session = httpContextAccessor.HttpContext.Session;
         }
 
         public IActionResult Index()
         {
             var vm = new Models.WorkViewModel { Contractor = LookupRepo.GetLookupByVal("Contractor", CurrentUsername) };
-            this.session.SetString("Contractor",JsonConvert.SerializeObject(vm.Contractor));
+            Session.SetString("Contractor",JsonConvert.SerializeObject(vm.Contractor));
             prepWork(vm);
             return View(vm);
         }

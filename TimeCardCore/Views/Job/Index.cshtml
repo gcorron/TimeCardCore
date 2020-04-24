@@ -1,0 +1,122 @@
+﻿@model TimeCardCore.Models.JobViewModel
+
+<style>
+    .job-col {
+        width: 12%;
+    }
+
+    .job-col-2 {
+        width: 24%;
+    }
+</style>
+<div class="row mt-3" style="max-height:700px; overflow-y:auto; position:relative;">
+    <div class="col-md-12">
+        <table class="table table-sm table-striped table-hover">
+            <thead class="sticky">
+                <tr>
+                    <th class="job-col">Client</th>
+                    <th class="job-col">Project</th>
+                    <th class="job-col">Bill Type</th>
+                    <th class="job-col-2">Description</th>
+                    <th class="job-col">Start Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ foreach (var job in Model.Jobs)
+                    {
+                        <tr class="work-row" data-edit=@(Json.Serialize(new { job.JobId }))>
+                            <td>@job.Client</td>
+                            <td>@job.Project</td>
+                            <td>@job.BillTypeDescr</td>
+                            <td>@job.Descr</td>
+                            <td>
+                                <span class="span-date">@($"{job.StartDate:MM/dd/yyyy}" )</span>
+                                <input type="date" class="form-control edit-date" placeholder="- None -" style="display:none;" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-default fa fa-pencil" title="Adjust Start Date"></button>
+                                <button type="button" class="btn btn-default fa fa-plus" title="Create New Start Date"></button>
+                                <button type="button" class="btn btn-success btn-sm btn-create" style="display:none;">Create New Start Date</button>
+                                <button type="button" class="btn btn-primary btn-sm btn-adjust" style="display:none;">Adjust Start Date</button>
+
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@Html.HiddenFor(m => m.ContractorId)
+
+@section scripts {
+
+    <script>
+    $(function () {
+        $("button.fa-pencil, button.fa-plus").click(function () {
+            var tr = $(this).closest('tr');
+            var isNew = $(this).hasClass('fa-plus');
+            var btn = isNew ? "btn-create" : "btn-adjust";
+            tr.find("button." + btn).show();
+
+            hideShowEdit(tr, true);
+            var span = tr.find('span.span-date')
+            var input = tr.find("input.edit-date");
+            var theDate = span.html();
+            if (theDate.length) {
+                theDate = theDate.substr(6, 4) + "-" + theDate.substr(0, 5).replace("/", "-");
+                input.val(theDate);
+            }
+        });
+
+        $("button.btn-create, button.btn-adjust").click(function () {
+            var tr = $(this).closest('tr');
+            var jobId = tr.data("edit").JobId;
+            var span = tr.find('span.span-date')
+            var input = tr.find("input.edit-date");
+            var theDate = input.val();
+            if (theDate.length) {
+                theDate = theDate.substr(5, 5).replace("-", "/") + "/" + theDate.substr(0, 4);
+            }
+            var isNew = $(this).hasClass("btn-create");
+
+            $.ajax({
+                type: "POST",
+                url: "Job/SetJobDate",
+                data: { contractorId: @Model.ContractorId, jobId: jobId, theDate: theDate, isNew: isNew },
+                success: function () {
+                    span.html(theDate);
+                    hideShowEdit(tr,false);
+                }
+            });
+
+        });
+
+    });
+
+    function hideShowEdit(tr, show) {
+        if (show) {
+            tr.siblings(".job-edit-show").each(function () {
+                hideShowEdit($(this), false);
+            });
+            tr.addClass("job-edit-show");
+        }
+        tr.find("button.fa-check").toggle(show);
+        tr.find("button.fa-pencil").toggle(!show);
+        tr.find("button.fa-plus").toggle(!show);
+        tr.find("input.edit-date").toggle(show);
+        tr.find("span.span-date").toggle(!show);
+        tr.find("span.span-descr").toggle(show);
+        if (show == false) {
+            tr.find("button.btn-sm").hide();
+        }
+    }
+
+
+    </script>
+
+}
+
