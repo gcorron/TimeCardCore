@@ -11,15 +11,19 @@
         if (Model.SelectedJobId != 0)
         {
             <div class="card mt-3">
-                <div class="card-header form-group row">
-                    <div class="col-md-2">@(Model.SelectedJob?.Client)</div>
-                    <div class="col-md-2">@(Model.SelectedJob?.Project)</div>
-                    <div class="col-md-2">@(Model.SelectedJob?.BillTypeDescr)</div>
+                <div class="card-header">
+                        <div class="form-group row">
+                            <div class="col-md-2">@(Model.SelectedJob?.Client)</div>
+                            <div class="col-md-2">@(Model.SelectedJob?.Project)</div>
+                            <div class="col-md-2">@(Model.SelectedJob?.BillTypeDescr)</div>
+                        </div>
                 </div>
                 <div class="card-body @(Model.EditPayment.PayId == 0 ? "bg-success" : "bg-info" )" id="divEdit" style=@(Model.CanEdit ? "" : "display:none;")>
                     <div class="form-group form-row">
                         <div class="col-md-1 col-form-label text-right">Date</div>
-                        <div class="col-md-2">@Html.TextBoxFor(m => m.EditPayment.PayDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date", @placeholder = "Enter Date" })</div>
+                        <div class="col-md-2">
+                            <input asp-for="EditPayment.PayDate" class="form-control" type="date" />
+                        </div>
                         <div class="col-md-1 col-form-label text-right">Amount</div>
 
                         <div class="col-md-2">@Html.TextBoxFor(m => m.EditPayment.Hours, new { @class = "form-control", type = "number", min = "0", max = "400", step = "0.25" })</div>

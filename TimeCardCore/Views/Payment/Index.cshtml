@@ -11,10 +11,10 @@
 </ul>
 <div class="tab-content">
     <div class="tab-pane active fade show" id="summary">
-        @Html.Partial("_PaymentSummary", Model)
+        <partial name="_PaymentSummary" />
     </div>
     <div class="tab-pane fade" id="edit">
-        @Html.Partial("_EditPayment", Model)
+        <partial name="_EditPayment" />
     </div>
 </div>
 @section scripts {
@@ -37,7 +37,7 @@
             var data = $(this).data("edit");
             $("#@Html.IdFor(m => m.EditPayment.PayId)").val(data.PayId);
             var theDate = $(this).find('td').eq(0).html();
-            theDate = theDate.substr(6, 4) + "-" + theDate.substr(0, 5).replace("/","-");
+            theDate = theDate.substr(6, 4) + "-" + theDate.substr(0, 5).replace("/", "-");
             $("#@Html.IdFor(m => m.EditPayment.PayDate)").val(theDate);
             $("#@Html.IdFor(m => m.EditPayment.Hours)").val($(this).find('td').eq(1).html());
             $("#@Html.IdFor(m => m.EditPayment.CheckNo)").val($(this).find('td').eq(2).html());

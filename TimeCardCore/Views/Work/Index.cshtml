@@ -22,14 +22,13 @@
 </ul>
 <div class="tab-content">
     <div class="tab-pane active fade show" id="edit">
-        @using (Html.BeginForm("Index", "Work", FormMethod.Post, new { id = "formWork" }))
-        {
+        <form asp-controller="Work" asp-action="Index" method="POST" id="formWork">
             <div class="card">
                 <div class="card-header">
                     <div class="form-group row">
-                        @Html.LabelFor(m => m.SelectedCycle, "Work Period", new { @class = "col-md-2 col-form-label" })
+                        <label asp-for="SelectedCycle" class="col-md-2 col-form-label">Work Period</label>
                         <div class="col-md-3">
-                            @Html.DropDownListFor(m => m.SelectedCycle, Model.PayCycles, new { @class = "form-control" })
+                            <select asp-for="SelectedCycle" asp-items="Model.PayCycles" class="form-control"></select>
                         </div>
                         <div class="col-md-2 text-right">
                             <button class="btn btn-success" type="button" id="btnGetCards">Get Time Cards</button>
@@ -40,39 +39,39 @@
                 <div id="divEdit" class="card-body @(Model.EditWork.WorkId == 0 ? "bg-success" : "bg-info" )">
                     <div class="form-group form-row">
                         <label class="col-form-label col-md-1">Date</label>
-                        <div class="col-md-1">
-                            @Html.DropDownListFor(m => m.EditWork.WorkDay, Model.EditDays, new { @class = "form-control" })
+                        <div class="col-md-2">
+                            <select asp-for="EditWork.WorkDay" asp-items="Model.EditDays" class="form-control"></select>
                         </div>
                         <label class="col-form-label col-md-1 text-right">Job</label>
                         <div class="col-md-3">
-                            @Html.DropDownListFor(m => m.EditWork.JobId, Model.Jobs, new { @class = "form-control" })
+                            <select asp-for="EditWork.JobId" asp-items="Model.Jobs" class="form-control"></select>
                         </div>
                         <div class="col-md-1 col-form-label text-right">Type</div>
-                        <div class="col-md-2">@Html.DropDownListFor(m => m.EditWork.WorkType, Model.WorkTypes, new { @class = "form-control" })</div>
+                        <div class="col-md-2">
+                            <select asp-for="EditWork.WorkType" asp-items="Model.WorkTypes" class="form-control"></select>
+                        </div>
                         <label class="col-form-label col-md-1">Hours</label>
                         <div class="col-md-1">
-                            @Html.TextBoxFor(m => m.EditWork.Hours, new { @class = "form-control", type = "number", min = "0", max = "4", step = "0.25" })
+                            <input asp-for="EditWork.Hours" class="form-control" type="number" min="0" , max="4" , step="0.25" />
                         </div>
-                        <div class="col-md-1 text-right">
-                            <button class="btn btn-default fa fa-2x fa-check" name="buttonValue" value="Save"></button>
-                        </div>
-                        @Html.HiddenFor(m => m.EditWork.WorkId)
-                        @Html.HiddenFor(m => m.EditWork.WorkDay)
-                        @Html.HiddenFor(m => m.EditWork.JobId)
-                        @Html.HiddenFor(m => m.EditWork.ContractorId)
+                        <input asp-for="EditWork.WorkId" type="hidden" />
+                        <input asp-for="EditWork.WorkDay" type="hidden" />
+                        <input asp-for="EditWork.JobId" type="hidden" />
+                        <input asp-for="EditWork.ContractorId" type="hidden" />
                     </div>
                     <div class="form-group form-row">
                         <label class="col-form-label col-md-1">Descr</label>
                         <div class="col-md-9">
-                            @Html.TextBoxFor(m => m.EditWork.Descr, new { @class = "form-control", style = "min-width:100%;" })
+                            <input asp-for="EditWork.Descr" class="form-control" style="min-width:100%;" />
                         </div>
-                        <div id="divEditButtons" class="col-md-2 text-right" style='@(Model.EditWork.WorkId == 0 ? "display:none;" : "")'>
-                            <button class="btn btn-default fa fa-2x fa-plus" type="button" id="btnAdd"></button>
-                            <button class="btn btn-default fa fa-2x fa-times" name="buttonValue" value="Delete" onclick="return confirm('Delete are you sure?');"></button>
+                        <div id="divEditButtons" class="col-md-2 text-right">
+                            <button class="btn btn-default fa fa-2x fa-check" name="buttonValue" value="Save"></button>
+                            <button class="btn btn-default fa fa-2x fa-plus" type="button" id="btnAdd" style="display:none;"></button>
+                            <button class="btn btn-default fa fa-2x fa-times" name="buttonValue" value="Delete" style="display:none;" onclick="return confirm('Delete are you sure?');"></button>
                         </div>
                     </div>
                     <div id="saveAlert" class="alert alert-danger offset-1 col-md-10" style="display:none;">
-                        @Html.ValidationSummary()
+                        <div asp-validation-summary="All"></div>
                     </div>
                 </div>
             </div>
@@ -104,9 +103,9 @@
                     </table>
                 </div>
             </div>
-            @Html.HiddenFor(m => m.Contractor.Id)
-            @Html.HiddenFor(m => m.Contractor.Descr)
-        }
+            <input asp-for="Contractor.Id" type="hidden" />
+            <input asp-for="Contractor.Descr" type="hidden" />
+        </form>
     </div>
     <div class="tab-pane fade" id="summary">
 
@@ -119,7 +118,9 @@
 @section scripts {
     <script>
         $(function () {
-        $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
+
+            $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
+                $("#formWork").validate().cancelSubmit = true;
             $("#formWork").submit();
         });
         $("tr.work-row").click(function () {
@@ -236,12 +237,7 @@
 
     function showEditButtons() {
         var newWork = $("#@Html.IdFor(m => m.EditWork.WorkId)").val() == 0;
-        if (newWork) {
-            $("#divEditButtons").hide();
-        }
-        else {
-            $("#divEditButtons").show();
-        }
+        $("#divEditButtons button[value!='Save']").toggle(!newWork);
     }
 
 

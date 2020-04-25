@@ -251,7 +251,7 @@ namespace TimeCardCore.Controllers
         public void GenerateInvoices(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
             int blankRow = 14;
-            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, true).Where(x => "TB".Contains(x.BillType))
+            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, true).Where(x => "SOW".Contains(x.BillType))
                 .GroupBy(g => new { g.ClientId, g.ProjectId });
 
             using (var templatePackage = new ExcelPackage(templateFile))
