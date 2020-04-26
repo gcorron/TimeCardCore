@@ -10,7 +10,7 @@ using TimeCard.Domain;
 
 namespace TimeCard.Repo.Repos
 {
-    public class LookupRepo:BaseRepo
+    public class LookupRepo : BaseRepo
     {
         public LookupRepo(string connectionString) : base(connectionString)
         {
@@ -38,6 +38,25 @@ namespace TimeCard.Repo.Repos
             {
                 return data;
             }
+        }
+        public IEnumerable<Lookup> GetLookups(int groupId)
+        {
+            return QuerySp<Lookup>("sLookup", new { groupId });
+        }
+
+
+        public IEnumerable<LookupGroup> GetGroups()
+        {
+            return Enumerable.Repeat(new LookupGroup { GroupId = 0, Descr = "- Select -" }, 1).Union(QuerySp<LookupGroup>("sLookupGroup", null));
+        }
+
+        public  void SaveLookup(Lookup lookup)
+        {
+            ExecuteSp("uLookup", lookup);
+        }
+        public void DeleteLookup(int id)
+        {
+            ExecuteSp("dLookup",new { id });
         }
 
     }

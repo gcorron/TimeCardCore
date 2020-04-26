@@ -1,0 +1,103 @@
+﻿@model TimeCardCore.Models.LookupViewModel
+    <form id="formLookup" asp-controller="Lookup" asp-action="Index" method="POST" class="form-horizontal">
+        <row>
+            <div class="col-4 offset-4">
+                <select asp-for="SelectedGroupId" asp-items="Model.LookupGroups" class="form-control"></select>
+            </div>
+        </row>
+        <div class="card mt-3" style="display:@(Model.SelectedGroupId == 0 ? "none;" : "normal;")">
+            <div id="divEdit" class="card-body @(Model.EditLookup.Id == 0 ? "bg-success" : "bg-info" )">
+                <div class="form-row">
+                    <input asp-for="EditLookup.Id" type="hidden" />
+                    <label asp-for="EditLookup.Descr" class="col-form-label col-md-1">Descr</label>
+                    <div class="col-md-4"><input asp-for="EditLookup.Descr" class="form-control" /></div>
+                    <label asp-for="EditLookup.Descr" class="col-form-label col-md-1">Value</label>
+                    <div class="col-md-2"><input asp-for="EditLookup.Val" class="form-control" /></div>
+                    <div class="col-md-1 offset-1">
+                        <div class="custom-control form-control custom-checkbox bg-transparent border-0">
+                            <input asp-for="EditLookup.Active" class="custom-control-input" />
+                            <label asp-for="EditLookup.Active" class="custom-control-label">Active</label>
+                        </div>
+                    </div>
+                    <div id="divEditButtons" class="col-md-2 text-right">
+                        <button class="btn btn-default fa fa-2x fa-check" name="buttonValue" value="Save"></button>
+                        <button class="btn btn-default fa fa-2x fa-plus" type="button" id="btnAdd" style="display:none;"></button>
+                        <button class="btn btn-default fa fa-2x fa-times" name="buttonValue" value="Delete" style="display:none;" onclick="return confirm('Delete are you sure?');"></button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        @{ if (Model.Lookups != null)
+            {
+                <div class="row mt-3" style="max-height:450px; overflow-y:auto; position:relative;">
+                    <div class="col-md-12">
+                        <table class="table table-sm table-striped table-hover">
+                            <thead class="sticky">
+                                <tr>
+                                    <th style="width:40%;">Description</th>
+                                    <th style="width:20%;">Value</th>
+                                    <th style="width:15%;">Active</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ foreach (var lu in Model.Lookups)
+                                    {
+                                        <tr class="lookup-row" data-edit=@(Json.Serialize(new  { lu.Id, lu.Active }))>
+                                            <td>@lu.Descr</td>
+                                            <td>@lu.Val</td>
+                                            <td><span @Html.Raw(lu.Active ? "class=\"fa fa-check\"" : "")></span></td>
+                                            <td></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+
+    </form>
+@section scripts
+{
+    <script>
+    $(function () {
+        $("#@Html.IdFor(m => m.SelectedGroupId)").change(function () {
+            $("#formLookup").submit();
+        });
+
+        $("tr.lookup-row").click(function () {
+            $(this).addClass("bg-info").siblings().removeClass("bg-info");
+            var data = $(this).data("edit");
+            $("#@Html.IdFor(m => m.EditLookup.Id)").val(data.Id);
+            $("#@Html.IdFor(m => m.EditLookup.Active)").prop("checked", data.Active);
+            var cells = $(this).find("td").map(function () { return $(this).text(); });
+            $("#@Html.IdFor(m => m.EditLookup.Descr)").val(cells[0]);
+            $("#@Html.IdFor(m => m.EditLookup.Val)").val(cells[1]);
+            $("#divEdit").addClass("bg-info").removeClass("bg-success");
+            showEditButtons();
+        });
+
+        $("#btnAdd").click(function () {
+            $("#divEdit").addClass("bg-success").removeClass("bg-info");
+            $("#@Html.IdFor(m => m.EditLookup.Id)").val(0);
+            $("#@Html.IdFor(m => m.EditLookup.Active)").prop("checked",true);
+            $("#@Html.IdFor(m => m.EditLookup.Descr)").val("");
+            $("#@Html.IdFor(m => m.EditLookup.Val)").val("");
+            showEditButtons();
+        });
+
+
+
+
+        showEditButtons();
+    });
+
+     function showEditButtons() {
+        var newWork = $("#@Html.IdFor(m => m.EditLookup.Id)").val() == 0;
+        $("#divEditButtons button[value!='Save']").toggle(!newWork);
+    }
+    </script>
+}

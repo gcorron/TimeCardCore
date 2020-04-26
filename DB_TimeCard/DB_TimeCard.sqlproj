@@ -61,6 +61,7 @@
     <Folder Include="dbo\Views\" />
     <Folder Include="dbo\Functions\" />
     <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="Security\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\Work.sql" />
@@ -89,5 +90,9 @@
     <Build Include="dbo\Stored Procedures\sJob.sql" />
     <Build Include="dbo\Stored Procedures\dWork.sql" />
     <Build Include="dbo\Stored Procedures\dPayment.sql" />
+    <Build Include="Security\NT AUTHORITY_NETWORK SERVICE.sql" />
+    <Build Include="dbo\Stored Procedures\uLookup.sql" />
+    <Build Include="dbo\Stored Procedures\sLookupGroup.sql" />
+    <Build Include="dbo\Stored Procedures\dLookup.sql" />
   </ItemGroup>
 </Project>
