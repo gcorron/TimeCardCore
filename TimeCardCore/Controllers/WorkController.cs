@@ -334,7 +334,9 @@ namespace TimeCardCore.Controllers
                         }
                     }
                     currentRow += 5;
-                    var paySummary = _PaymentRepo.GetSummary(contractorId);
+
+                    var paySummary = _PaymentRepo.GetSummary(contractorId)
+                      .OrderBy(x => x.Client).ThenBy(x => x.Project).ThenBy(x => x.BillType);
                     var payments = _PaymentRepo.GetPayments(contractorId);
                     foreach (var summary in paySummary)
                     {
@@ -347,7 +349,8 @@ namespace TimeCardCore.Controllers
                         sheet.Cells[currentRow, 6].Value = summary.Balance;
                         sheet.Cells[currentRow, 7].Value = summary.StartDate;
                         sheet.Cells[currentRow, 8].Value = summary.PaidThruDate;
-                        var jobPayments = payments.Where(x => x.JobId == summary.JobId);
+                        var jobPayments = payments.Where(x => x.JobId == summary.JobId)
+                            .OrderBy(x => x.PayDate);
                         if (jobPayments.Any())
                         {
                             foreach (var jp in jobPayments)
