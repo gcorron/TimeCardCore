@@ -32,8 +32,7 @@ namespace TimeCardCore.Controllers
         
         public IActionResult Index()
         {
-            var vm = new Models.WorkViewModel { Contractor = LookupRepo.GetLookupByVal("Contractor", CurrentUsername) };
-            Session.SetString("Contractor",JsonConvert.SerializeObject(vm.Contractor));
+            var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername };
             prepWork(vm);
             return View(vm);
         }
@@ -78,10 +77,10 @@ namespace TimeCardCore.Controllers
             {
                 vm.SelectedCycle = cycle;
             }
-            vm.WorkEntries = _WorkRepo.GetWork(vm.Contractor.Id, vm.SelectedCycle, true);
+            vm.WorkEntries = _WorkRepo.GetWork(vm.SelectedContractorId, vm.SelectedCycle, true);
             if (vm.EditWork == null)
             {
-                vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.Contractor.Id, WorkDay = DateRef.GetWorkDay(DateTime.Today) };
+                vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.SelectedContractorId, WorkDay = DateRef.GetWorkDay(DateTime.Today) };
             }
             vm.EditDays = GetEditDays(vm.SelectedCycle);
             vm.DailyTotals = new decimal[2][];

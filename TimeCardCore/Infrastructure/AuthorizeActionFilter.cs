@@ -47,9 +47,17 @@ namespace TimeCardCore.Controllers
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var user = context.HttpContext.User.Claims;
-            bool isAuthorized = user.Where(x => x.Value == _item).Any();
-            if (!isAuthorized)
+            bool isAuthorized = false;
+            var user = context.HttpContext.User;
+            if (user.Identity.IsAuthenticated)
+            {
+                isAuthorized = user.Claims.Where(x => x.Value == _item).Any();
+                if (!isAuthorized)
+                {
+                    context.Result = new UnauthorizedResult();
+                }
+            }
+            else
             {
                 context.Result = new ForbidResult();
             }
@@ -65,13 +73,13 @@ namespace TimeCardCore.Controllers
 
         public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
-            var ci = (ClaimsIdentity)principal.Identity;
-            var roles = _lookupRepo.GetRolesForUser(ci.Name.Substring(ci.Name.IndexOf(@"\") + 1));
-            foreach(var role in roles)
-            {
-                var c = new Claim(ci.RoleClaimType, role);
-                ci.AddClaim(c);
-            }
+            //var ci = (ClaimsIdentity)principal.Identity;
+            //var roles = _lookupRepo.GetRolesForUser(ci.Name.Substring(ci.Name.IndexOf(@"\") + 1));
+            //foreach(var role in roles)
+            //{
+            //    var c = new Claim(ci.RoleClaimType, role);
+            //    ci.AddClaim(c);
+            //}
             return Task.FromResult(principal);
         }
     }

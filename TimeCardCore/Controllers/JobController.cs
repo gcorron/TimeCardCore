@@ -21,9 +21,8 @@ namespace TimeCardCore.Controllers
 
         public ActionResult Index()
         {
-            int contractorId = LookupRepo.GetLookupByVal("Contractor", CurrentUsername).Id;
-            var jobs = _JobRepo.GetJobStart(contractorId);
-            return View(new Models.JobViewModel { ContractorId = contractorId, Jobs = jobs });
+            var jobs = _JobRepo.GetJobStart(ContractorId);
+            return View(new Models.JobViewModel { ContractorId = ContractorId, Jobs = jobs });
         }
 
         public void SetJobDate(int contractorId, int jobId, string theDate, bool isNew)

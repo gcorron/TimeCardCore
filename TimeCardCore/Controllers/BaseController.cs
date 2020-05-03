@@ -17,22 +17,28 @@ namespace TimeCardCore.Controllers
         
         private readonly IWebHostEnvironment  _webHostEnvironment;
         private readonly int _curUserId;
+        private readonly int _curContractorId;
         private readonly string _curUserName;
 
         protected readonly ISession Session;
 
         protected int CurrentUserId { get => _curUserId; }
         protected string CurrentUsername { get => _curUserName; }
+        protected int ContractorId { get => _curContractorId; }
 
         public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base()
         {
             ConnString = config.GetConnectionString("TimeCard");
+            LookupRepo = new LookupRepo(ConnString);
             _webHostEnvironment = webHostEnvironment;
             Session = httpContextAccessor.HttpContext.Session;
-            var username = httpContextAccessor.HttpContext.User.Identity.Name;
-            _curUserName = username.Substring(username.IndexOf(@"\") + 1);
-            LookupRepo = new LookupRepo(ConnString);
-            _curUserId = LookupRepo.GetLookupByVal("Contractor", _curUserName).Id;
+            var user = httpContextAccessor.HttpContext.User;
+            if (user.Identity.IsAuthenticated)
+            {
+                _curUserName = user.Claims.Where(x => x.Type == "FullName").Single().Value;
+                _curUserId = int.Parse(user.Claims.Where(x => x.Type == "UserId").Single().Value);
+                _curContractorId = int.Parse(user.Claims.Where(x => x.Type == "ContractorId").Single().Value);
+            }
         }
 
         public string WebRootPath

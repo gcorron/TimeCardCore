@@ -6,7 +6,6 @@ namespace TimeCardCore.Models
 {
     public class WorkViewModel
     {
-        public TimeCard.Domain.Lookup Contractor { get; set; }
         public IEnumerable<SelectListItem> PayCycles { get; set; }
         public IEnumerable<SelectListItem> Jobs { get; set; }
         public IEnumerable<SelectListItem> WorkTypes { get; set; }
@@ -16,6 +15,8 @@ namespace TimeCardCore.Models
         public IEnumerable<Work> WorkEntries { get; set; }
         public decimal[][] DailyTotals { get; set; }
         public int SelectedCycle { get; set; }
+        public int SelectedContractorId { get; set; }
+        public string SelectedContractorDescr { get; set; }
         public Work EditWork { get; set; }
     }
 }

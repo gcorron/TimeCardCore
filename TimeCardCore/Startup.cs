@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -48,7 +49,7 @@ namespace TimeCardCore
 #endif
             services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton<IClaimsTransformation, ClaimsTransformer>();
-            services.AddAuthentication(IISDefaults.AuthenticationScheme);
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
             services.AddAuthorization();
             services.Configure<IISServerOptions>(options =>
             {
@@ -79,7 +80,7 @@ namespace TimeCardCore
             app.UseStatusCodePages(async context =>
             {
                 var response = context.HttpContext.Response;
-                if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized) {
                     response.Redirect("/Error/Forbidden");
             }
                     

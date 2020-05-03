@@ -33,11 +33,11 @@ namespace TimeCardCore.Controllers
 
             var vm = new PaymentViewModel
             {
-                SelectedContractorId = CurrentUserId,
+                SelectedContractorId = ContractorId,
                 IsAdmin = false,
-                EditPayment = new TimeCard.Domain.Payment { ContractorId = CurrentUserId },
-                PaymentSummary = _PaymentRepo.GetSummary(CurrentUserId),
-                Payments = _PaymentRepo.GetPayments(CurrentUserId)
+                EditPayment = new TimeCard.Domain.Payment { ContractorId = ContractorId },
+                PaymentSummary = _PaymentRepo.GetSummary(ContractorId),
+                Payments = _PaymentRepo.GetPayments(ContractorId)
             };
             prepPayment(vm);
             return View(vm);

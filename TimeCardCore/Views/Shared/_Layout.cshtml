@@ -23,31 +23,30 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     @{
-                        var contractorString = HttpContextAccessor.HttpContext.Session.GetString("Contractor");
-                        if (contractorString != null)
+                        var user = HttpContextAccessor.HttpContext.User;
+                        if (user.Identity.IsAuthenticated)
                         {
-                            var contractor = Newtonsoft.Json.JsonConvert.DeserializeObject(contractorString, typeof(TimeCard.Domain.Lookup)) as TimeCard.Domain.Lookup;
-                            if (contractor != null)
-                            {
-                                <p class="nav navbar-text navbar-right">You are logged in as @contractor.Descr</p>
-                            }
+                            var fullName = user.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value;
+                            <p class="nav navbar-text navbar-right">You are logged in as @fullName</p>
                         }
-
                     }
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item nav-select-default">
-                        <a class="nav-link" asp-area="" asp-controller="Work" asp-action="Index">Work</a>
-                    </li>
-                    <li class="nav-item nav-select-payment">
-                        <a class="nav-link" asp-area="" asp-controller="Payment" asp-action="Index">Payment</a>
-                    </li>
-                    <li class="nav-item nav-select-job">
-                        <a class="nav-link" asp-area="" asp-controller="Job" asp-action="Index">Jobs</a>
-                    </li>
-                    <li class="nav-item nav-select-lookup">
-                        <a class="nav-link" asp-area="" asp-controller="Lookup" asp-action="Index">Lookups</a>
-                    </li>
-                </ul>
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item nav-select-default">
+                            <a class="nav-link" asp-area="" asp-controller="Work" asp-action="Index">Work</a>
+                        </li>
+                        <li class="nav-item nav-select-payment">
+                            <a class="nav-link" asp-area="" asp-controller="Payment" asp-action="Index">Payment</a>
+                        </li>
+                        <li class="nav-item nav-select-job">
+                            <a class="nav-link" asp-area="" asp-controller="Job" asp-action="Index">Jobs</a>
+                        </li>
+                        <li class="nav-item nav-select-lookup">
+                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Index">Security</a>
+                        </li>
+                        <li class="nav-item nav-select-lookup">
+                            <a class="nav-link" asp-area="" asp-controller="Lookup" asp-action="Index">Lookups</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>

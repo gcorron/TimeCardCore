@@ -9,3 +9,10 @@
 
 
 
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [ILookupDescr]
+    ON [dbo].[Lookup]([groupId] ASC, [descr] ASC);
+

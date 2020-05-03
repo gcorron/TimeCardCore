@@ -94,5 +94,20 @@
     <Build Include="dbo\Stored Procedures\uLookup.sql" />
     <Build Include="dbo\Stored Procedures\sLookupGroup.sql" />
     <Build Include="dbo\Stored Procedures\dLookup.sql" />
+    <Build Include="dbo\Tables\AppUserRole.sql" />
+    <Build Include="dbo\Tables\AppUser.sql" />
+    <Build Include="dbo\Tables\AppRole.sql" />
+    <Build Include="dbo\Stored Procedures\uLogin.sql" />
+    <Build Include="dbo\Stored Procedures\uAppUserSeedAdmin.sql" />
+    <Build Include="dbo\Stored Procedures\uAppUserRole.sql" />
+    <Build Include="dbo\Stored Procedures\uAppUser.sql" />
+    <Build Include="dbo\Stored Procedures\uAppRole.sql" />
+    <Build Include="dbo\Stored Procedures\sLookupRolesForUser.sql" />
+    <Build Include="dbo\Stored Procedures\sLogin.sql" />
+    <Build Include="dbo\Stored Procedures\sAppUserRole.sql" />
+    <Build Include="dbo\Stored Procedures\sAppUser.sql" />
+    <Build Include="dbo\Stored Procedures\dAppUserRole.sql" />
+    <Build Include="dbo\Stored Procedures\dAppUser.sql" />
+    <Build Include="dbo\Stored Procedures\dAppRole.sql" />
   </ItemGroup>
 </Project>

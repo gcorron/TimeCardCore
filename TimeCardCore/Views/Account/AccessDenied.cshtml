@@ -1,0 +1,35 @@
+﻿@model LoginViewModel
+<h1>Log In</h1>
+<form asp-action="Login" asp-controller="Account" autocomplete="off">
+    <div class="form-group form-row">
+        <label asp-for="UserName" class="col-2 col-form-label">User Name</label>
+        <div class="col-3"><input asp-for="UserName" class="form-control" /></div>
+    </div>
+    <div class="form-group form-row">
+        <label asp-for="Password" class="col-2 col-form-label">Password</label>
+        <div class="col-3"><input asp-for="Password" type="password" class="form-control" /></div>
+
+    </div>
+    <div class="form-group form-row">
+        <div class="col-md-3 offset-2">
+            <div class="custom-control form-control custom-checkbox bg-transparent border-0">
+                <input asp-for="RememberMe" class="custom-control-input" />
+                <label asp-for="RememberMe" class="custom-control-label">Remember Me</label>
+            </div>
+        </div>
+        <div class="col-1"><button class="btn btn-primary">Submit</button></div>
+    </div>
+    <div class="row">
+        <div id="saveAlert" class="alert alert-danger offset-2 col-md-8" style="display:none;">
+            <div asp-validation-summary="All"></div>
+        </div>
+    </div>
+</form>
+@section scripts
+{
+    <script>
+        if ($("#saveAlert div.validation-summary-valid").length == 0) {
+            $("#saveAlert").show();
+        }
+    </script>
+}
