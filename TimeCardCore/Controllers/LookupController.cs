@@ -33,6 +33,8 @@ namespace TimeCardCore.Controllers
                     {
                         vm.EditLookup.GroupId = vm.SelectedGroupId;
                         LookupRepo.SaveLookup(vm.EditLookup);
+                        vm.EditLookup = new TimeCard.Domain.Lookup();
+                        ModelState.Clear();
                     }
                     break;
                 case "Delete":

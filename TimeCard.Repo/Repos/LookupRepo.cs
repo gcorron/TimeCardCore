@@ -59,5 +59,10 @@ namespace TimeCard.Repo.Repos
             ExecuteSp("dLookup",new { id });
         }
 
+        public IEnumerable<string> GetRolesForUser(string userName)
+        {
+            return QuerySp<string>("sLookupRolesForUser", new { userName });
+        }
+
     }
 }

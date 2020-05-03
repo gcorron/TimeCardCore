@@ -14,6 +14,7 @@ namespace TimeCardCore.Models
         public decimal TestWorkDay { get; set; }
         public string TestToday { get; set; }
         public IEnumerable<Work> WorkEntries { get; set; }
+        public decimal[][] DailyTotals { get; set; }
         public int SelectedCycle { get; set; }
         public Work EditWork { get; set; }
     }

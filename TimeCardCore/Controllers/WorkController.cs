@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace TimeCardCore.Controllers
 {
+    [Authorize("Contractor", "Read")]
     public class WorkController : BaseController
     {
         private readonly WorkRepo _WorkRepo;
@@ -28,6 +29,7 @@ namespace TimeCardCore.Controllers
             _PaymentRepo = new PaymentRepo(ConnString);
         }
 
+        
         public IActionResult Index()
         {
             var vm = new Models.WorkViewModel { Contractor = LookupRepo.GetLookupByVal("Contractor", CurrentUsername) };
@@ -82,6 +84,16 @@ namespace TimeCardCore.Controllers
                 vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.Contractor.Id, WorkDay = DateRef.GetWorkDay(DateTime.Today) };
             }
             vm.EditDays = GetEditDays(vm.SelectedCycle);
+            vm.DailyTotals = new decimal[2][];
+            for(int i=0; i<2;i++)
+            {
+                vm.DailyTotals[i] = new decimal[8];
+                for (int j=0;j<7;j++)
+                {
+                    vm.DailyTotals[i][j] = vm.WorkEntries.Where(x => x.WeekDay == j + i * 7).Sum(x => x.Hours);
+                    vm.DailyTotals[i][7] += vm.DailyTotals[i][j];
+                }
+            }
         }
 
         private IEnumerable<SelectListItem> GetEditDays(int thisCycle)

@@ -1,5 +1,5 @@
 ﻿@model TimeCardCore.Models.LookupViewModel
-    <form id="formLookup" asp-controller="Lookup" asp-action="Index" method="POST" class="form-horizontal">
+    <form id="formLookup" asp-controller="Lookup" asp-action="Index" method="POST" class="form-horizontal" autocomplete="off" >
         <row>
             <div class="col-4 offset-4">
                 <select asp-for="SelectedGroupId" asp-items="Model.LookupGroups" class="form-control"></select>
@@ -35,6 +35,7 @@
                         <table class="table table-sm table-striped table-hover">
                             <thead class="sticky">
                                 <tr>
+                                    <th style="width:10%;">ID</th>
                                     <th style="width:40%;">Description</th>
                                     <th style="width:20%;">Value</th>
                                     <th style="width:15%;">Active</th>
@@ -45,6 +46,7 @@
                                 @{ foreach (var lu in Model.Lookups)
                                     {
                                         <tr class="lookup-row" data-edit=@(Json.Serialize(new  { lu.Id, lu.Active }))>
+                                            <td>@lu.Id</td>
                                             <td>@lu.Descr</td>
                                             <td>@lu.Val</td>
                                             <td><span @Html.Raw(lu.Active ? "class=\"fa fa-check\"" : "")></span></td>
@@ -74,8 +76,8 @@
             $("#@Html.IdFor(m => m.EditLookup.Id)").val(data.Id);
             $("#@Html.IdFor(m => m.EditLookup.Active)").prop("checked", data.Active);
             var cells = $(this).find("td").map(function () { return $(this).text(); });
-            $("#@Html.IdFor(m => m.EditLookup.Descr)").val(cells[0]);
-            $("#@Html.IdFor(m => m.EditLookup.Val)").val(cells[1]);
+            $("#@Html.IdFor(m => m.EditLookup.Descr)").val(cells[1]);
+            $("#@Html.IdFor(m => m.EditLookup.Val)").val(cells[2]);
             $("#divEdit").addClass("bg-info").removeClass("bg-success");
             showEditButtons();
         });

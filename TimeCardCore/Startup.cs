@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using TimeCardCore.Controllers;
+using static TimeCardCore.Controllers.AuthorizeActionFilter;
 
 namespace TimeCardCore
 {
@@ -33,19 +39,21 @@ namespace TimeCardCore
 
             services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
             var mvc = services.AddControllersWithViews()
-                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null); ;
+                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+                
 #if (DEBUG)
             {
                 mvc.AddRazorRuntimeCompilation();
             }
 #endif
             services.AddSingleton<IConfiguration>(Configuration);
-            services.AddAuthentication(IISDefaults.Negotiate);
+            services.AddSingleton<IClaimsTransformation, ClaimsTransformer>();
+            services.AddAuthentication(IISDefaults.AuthenticationScheme);
+            services.AddAuthorization();
             services.Configure<IISServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
             });
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,10 +70,20 @@ namespace TimeCardCore
                 app.UseHsts();
             }
             //app.UseHttpsRedirection();
+
             app.UseCookiePolicy();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseAuthentication();
             app.UseAuthorization();
+            app.UseStatusCodePages(async context =>
+            {
+                var response = context.HttpContext.Response;
+                if (response.StatusCode == (int)HttpStatusCode.Forbidden) {
+                    response.Redirect("/Error/Forbidden");
+            }
+                    
+            });
             app.UseSession();
             app.UseEndpoints(endpoints =>
             {

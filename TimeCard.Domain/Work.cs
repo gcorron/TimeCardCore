@@ -28,5 +28,7 @@ namespace TimeCard.Domain
                 return $"{DateRef.GetWorkDate(WorkDay):MM/dd}";
             }
         }
+        public int WeekDay { get => (int)((WorkDay % 1) * 100); }
+
     }
 }

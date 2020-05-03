@@ -7,6 +7,10 @@
     .work-col-2 {
         width: 18%;
     }
+
+    table.my-table-centered th, table.my-table-centered td {
+        text-align: center;
+    }
 </style>
 
 <ul class="nav nav-tabs">
@@ -36,7 +40,7 @@
                         <div class="col-md-5 alert alert-warning" id="alertHeader" style="display:none;"></div>
                     </div>
                 </div>
-                <div id="divEdit" class="card-body @(Model.EditWork.WorkId == 0 ? "bg-success" : "bg-info" )">
+                <div id="divEdit" class="card-body pb-1 @(Model.EditWork.WorkId == 0 ? "bg-success" : "bg-info" )">
                     <div class="form-group form-row">
                         <label class="col-form-label col-md-1">Date</label>
                         <div class="col-md-2">
@@ -59,7 +63,7 @@
                         <input asp-for="EditWork.JobId" type="hidden" />
                         <input asp-for="EditWork.ContractorId" type="hidden" />
                     </div>
-                    <div class="form-group form-row">
+                    <div class="form-group form-row mb-0">
                         <label class="col-form-label col-md-1">Descr</label>
                         <div class="col-md-9">
                             <input asp-for="EditWork.Descr" class="form-control" style="min-width:100%;" />
@@ -75,7 +79,32 @@
                     </div>
                 </div>
             </div>
-            <div class="row mt-3" style="max-height:450px; overflow-y:auto; position:relative;">
+            <table class="table table-bordered table-sm my-table-centered mt-3">
+                <thead>
+                    <tr>
+                        <th>Sat</th>
+                        <th>Sun</th>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < 2; i++)
+                    {
+                        <tr>
+                            @for (int j = 0; j < 8; j++)
+                            {
+                                <td>@Model.DailyTotals[i][j]</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="row" style="max-height:450px; overflow-y:auto; position:relative;">
                 <div class="col-md-12">
                     <table class="table table-sm table-striped table-hover">
                         <thead class="sticky">

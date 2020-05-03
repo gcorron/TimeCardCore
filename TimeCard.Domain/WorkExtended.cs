@@ -15,7 +15,7 @@ namespace TimeCard.Domain
         public string CycleEndDate { get => $"{DateRef.PeriodEndDate(WorkDay):MM/dd/yy}"; }
         public DateTime WorkDate { get => DateRef.GetWorkDate((decimal)WorkDay); }
         public int WorkWeek { get => (WorkDay % 1) < (decimal)0.07 ? 0 : 1; }
-        public DateTime WorkWeekDate { get => DateRef.GetWorkDate((decimal)(Cycle * 14 + 7 * WorkWeek)); }
+        public DateTime WorkWeekDate { get => DateRef.GetWorkDate((decimal)(Cycle + 0.07 * WorkWeek + 0.06)); }
         public int WorkWeekDay { get => (int)((WorkDay % 1) * 100) % 7; }
         public int ClientId { get; set; }
         public int ProjectId { get; set; }

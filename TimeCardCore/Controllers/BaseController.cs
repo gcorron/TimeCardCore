@@ -16,36 +16,23 @@ namespace TimeCardCore.Controllers
         protected readonly LookupRepo LookupRepo;
         
         private readonly IWebHostEnvironment  _webHostEnvironment;
-        private int _curUserId;
+        private readonly int _curUserId;
+        private readonly string _curUserName;
+
         protected readonly ISession Session;
 
-        protected int CurrentUserId
-        {
-            get
-            {
-                var user = LookupRepo.GetLookupByVal("Contractor", CurrentUsername);
-                return user.Id;
-            }
-        }
-
-        private string _curUsername;
-        protected string CurrentUsername
-        {
-            get
-            {
-                var username = HttpContext.User.Identity.Name;
-                _curUsername = username.Substring(username.IndexOf(@"\") + 1);
-                return _curUsername;
-            }
-        }
+        protected int CurrentUserId { get => _curUserId; }
+        protected string CurrentUsername { get => _curUserName; }
 
         public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base()
         {
             ConnString = config.GetConnectionString("TimeCard");
             _webHostEnvironment = webHostEnvironment;
             Session = httpContextAccessor.HttpContext.Session;
-
+            var username = httpContextAccessor.HttpContext.User.Identity.Name;
+            _curUserName = username.Substring(username.IndexOf(@"\") + 1);
             LookupRepo = new LookupRepo(ConnString);
+            _curUserId = LookupRepo.GetLookupByVal("Contractor", _curUserName).Id;
         }
 
         public string WebRootPath
