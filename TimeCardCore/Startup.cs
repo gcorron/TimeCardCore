@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using TimeCardCore.Controllers;
-using static TimeCardCore.Controllers.AuthorizeActionFilter;
+using TimeCardCore.Infrastructure;
 
 namespace TimeCardCore
 {
@@ -48,7 +48,6 @@ namespace TimeCardCore
             }
 #endif
             services.AddSingleton<IConfiguration>(Configuration);
-            services.AddSingleton<IClaimsTransformation, ClaimsTransformer>();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
             services.AddAuthorization();
             services.Configure<IISServerOptions>(options =>

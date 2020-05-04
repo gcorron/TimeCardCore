@@ -1,5 +1,30 @@
 ﻿@model TimeCardCore.Models.AppUserViewModel
 
+<form asp-action="Index", asp-controller="=Account" autocomplete="off">
+    <table class="table table-hover table-striped table-sm">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Full Name</th>
+                <th>Active</th>
+                <th>Last Login</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var user in Model.AppUsers)
+            {
+                <tr data-edit=@Json.Serialize(new { user.UserId })>
+                    <td>@user.UserName</td>
+                    <td>@user.UserFullName</td>
+                    <td>@user.Active</td>
+                    <td>@user.LastLogin</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</form>
+
 
 
  

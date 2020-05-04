@@ -14,5 +14,6 @@ namespace TimeCard.Domain
         public string UserFullName { get; set; }
         public bool Active { get; set; }
         public bool Reset { get; set; }
+        public DateTime? LastLogin { get; set; }
     }
 }

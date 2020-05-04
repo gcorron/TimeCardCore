@@ -10,30 +10,8 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 
-namespace TimeCardCore.Controllers
+namespace TimeCardCore.Infrastructure
 {
-    public enum PermissionItem
-    {
-        User,
-        Product,
-        Contact,
-        Review,
-        Client
-    }
-
-    public enum PermissionAction
-    {
-        Read,
-        Create,
-    }
-
-    public class AuthorizeAttribute : TypeFilterAttribute
-    {
-        public AuthorizeAttribute(string item, string action) : base(typeof(AuthorizeActionFilter))
-        {
-            Arguments = new object[] { item, action };
-        }
-    }
 
     public class AuthorizeActionFilter : IAuthorizationFilter
     {
@@ -63,25 +41,4 @@ namespace TimeCardCore.Controllers
             }
         }
     }
-    public class ClaimsTransformer : IClaimsTransformation
-    {
-        public readonly TimeCard.Repo.Repos.LookupRepo _lookupRepo;
-        public ClaimsTransformer(IConfiguration config)
-        {
-            _lookupRepo = new TimeCard.Repo.Repos.LookupRepo(config.GetConnectionString("TimeCard"));
-        }
-
-        public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
-        {
-            //var ci = (ClaimsIdentity)principal.Identity;
-            //var roles = _lookupRepo.GetRolesForUser(ci.Name.Substring(ci.Name.IndexOf(@"\") + 1));
-            //foreach(var role in roles)
-            //{
-            //    var c = new Claim(ci.RoleClaimType, role);
-            //    ci.AddClaim(c);
-            //}
-            return Task.FromResult(principal);
-        }
-    }
-
 }

@@ -27,7 +27,9 @@
                         if (user.Identity.IsAuthenticated)
                         {
                             var fullName = user.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value;
+                            <button id="btnLogOut" class="btn btn-sm btn-light ml-2">Log Out</button>
                             <p class="nav navbar-text navbar-right">You are logged in as @fullName</p>
+                            
                         }
                     }
                     <ul class="navbar-nav flex-grow-1">
@@ -41,7 +43,7 @@
                             <a class="nav-link" asp-area="" asp-controller="Job" asp-action="Index">Jobs</a>
                         </li>
                         <li class="nav-item nav-select-lookup">
-                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Index">Security</a>
+                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Index">Account</a>
                         </li>
                         <li class="nav-item nav-select-lookup">
                             <a class="nav-link" asp-area="" asp-controller="Lookup" asp-action="Index">Lookups</a>
@@ -79,6 +81,15 @@
             else {
                 $("li.nav-select-default").addClass("active");
             }
+            $("#btnLogOut").click(function() {
+                $.ajax({
+                    type: "POST",
+                    url: "/Account/LogOut",
+                    success: function () {
+                        location = "/";
+                    }
+                });
+            });
         });
     </script>
     @RenderSection("Scripts", required: false)

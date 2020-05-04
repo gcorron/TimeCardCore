@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using TimeCard.Repo.Repos;
+using TimeCardCore.Infrastructure;
 using TimeCardCore.Models;
 
 namespace TimeCardCore.Controllers
@@ -44,6 +45,13 @@ namespace TimeCardCore.Controllers
         {
 
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            HttpContext.SignOutAsync();
+            return Ok();
         }
 
         [HttpPost]
