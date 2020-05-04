@@ -5,11 +5,25 @@
         <label asp-for="UserName" class="col-2 col-form-label">User Name</label>
         <div class="col-3"><input asp-for="UserName" class="form-control" /></div>
     </div>
-    <div class="form-group form-row">
-        <label asp-for="Password" class="col-2 col-form-label">Password</label>
-        <div class="col-3"><input asp-for="Password" type="password" class="form-control" /></div>
-
-    </div>
+    @if (Model.Reset)
+    {
+        <div class="form-group form-row">
+            <label asp-for="NewPassword" class="col-2 col-form-label">New Password</label>
+            <div class="col-3"><input asp-for="NewPassword" type="password" class="form-control" /></div>
+            <input asp-for="Password" type="hidden" />
+        </div>
+        <div class="form-group form-row">
+            <label asp-for="ConfirmNewPassword" class="col-2 col-form-label">Confirm New Password</label>
+            <div class="col-3"><input asp-for="ConfirmNewPassword" type="password" class="form-control" /></div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group form-row">
+            <label asp-for="Password" class="col-2 col-form-label">Password</label>
+            <div class="col-3"><input asp-for="Password" type="password" class="form-control" /></div>
+        </div>
+    }
     <div class="form-group form-row">
         <div class="col-md-3 offset-2">
             <div class="custom-control form-control custom-checkbox bg-transparent border-0">
@@ -24,6 +38,7 @@
             <div asp-validation-summary="All"></div>
         </div>
     </div>
+    <input asp-for="Reset" type="hidden" />
 </form>
 @section scripts
 {

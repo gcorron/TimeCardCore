@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using TimeCard.Repo.Repos;
+using TimeCardCore.Infrastructure;
 
 namespace TimeCardCore.Controllers
 {
+    [Authorize("Contractor", "Read")]
     public class JobController : BaseController
     {
         private readonly JobRepo _JobRepo;

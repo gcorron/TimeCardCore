@@ -14,6 +14,9 @@ namespace TimeCardCore.Models
         [MaxLength(20)]
         [Required]
         public string Password { get; set; }
+        public string NewPassword { get; set; }
+        public string ConfirmNewPassword { get; set; }
         public bool RememberMe { get; set; }
+        public bool Reset { get; set; }
     }
 }

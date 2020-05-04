@@ -1,4 +1,4 @@
-﻿create procedure dAppUserRole @userId int, @roleId int
+﻿CREATE procedure [dbo].[dAppUserRole] @userId int
 as
 delete AppUserRole
-where userId=@userId and roleId = @roleId
+where userId=@userId

@@ -33,7 +33,7 @@
                         }
                     }
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item nav-select-default">
+                        <li class="nav-item nav-select-work">
                             <a class="nav-link" asp-area="" asp-controller="Work" asp-action="Index">Work</a>
                         </li>
                         <li class="nav-item nav-select-payment">
@@ -42,7 +42,7 @@
                         <li class="nav-item nav-select-job">
                             <a class="nav-link" asp-area="" asp-controller="Job" asp-action="Index">Jobs</a>
                         </li>
-                        <li class="nav-item nav-select-lookup">
+                        <li class="nav-item nav-select-account">
                             <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Index">Account</a>
                         </li>
                         <li class="nav-item nav-select-lookup">
@@ -72,14 +72,20 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         $(function () {
-            var controller = location.pathname.toLowerCase().replace("/","");
+            var controller = '@(HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString() )'
+            //var controller = location.pathname.toLowerCase().replace("/", "");
+            //var i = controller.indexOf('/');
+            //if (i > 0) {
+            //    controller = controller.slice(i + 1);
+            //}
+            controller = controller.toLowerCase();
             console.log(controller);
             var $li = $("li.nav-select-" + controller);
             if (($li).length) {
                 $li.addClass("active");
             }
             else {
-                $("li.nav-select-default").addClass("active");
+                $("li.nav-item").removeClass("active");
             }
             $("#btnLogOut").click(function() {
                 $.ajax({

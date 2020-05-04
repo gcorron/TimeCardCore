@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Server.IISIntegration;
@@ -41,7 +42,7 @@ namespace TimeCardCore
             services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
             var mvc = services.AddControllersWithViews()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
-                
+
 #if (DEBUG)
             {
                 mvc.AddRazorRuntimeCompilation();
@@ -74,16 +75,16 @@ namespace TimeCardCore
             app.UseCookiePolicy();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
             app.UseStatusCodePages(async context =>
             {
                 var response = context.HttpContext.Response;
-                if (response.StatusCode == (int)HttpStatusCode.Unauthorized) {
-                    response.Redirect("/Error/Forbidden");
-            }
-                    
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect("/Error/NoPermission");
+                }
             });
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseSession();
             app.UseEndpoints(endpoints =>
             {

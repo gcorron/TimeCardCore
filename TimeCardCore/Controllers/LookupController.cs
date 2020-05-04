@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using TimeCardCore.Infrastructure;
 using TimeCardCore.Models;
 
 namespace TimeCardCore.Controllers
 {
+    [Authorize("Admin","Read")]
     public class LookupController : BaseController
     {
         public LookupController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)

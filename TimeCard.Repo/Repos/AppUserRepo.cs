@@ -12,9 +12,9 @@ namespace TimeCard.Repo.Repos
 
         }
 
-        public Login Login(string userName, string password)
+        public Login Login(string userName, string password, string newpassword)
         {
-            return QuerySingleSp<Login>("sLogin", new { userName, password });
+            return QuerySingleSp<Login>("sLogin", new { userName, password, newpassword });
         }
 
         public void UpdateLogin(string userName, string password)
@@ -22,24 +22,34 @@ namespace TimeCard.Repo.Repos
             ExecuteSp("uLogin", new { userName, password });
         }
 
-        public IEnumerable<string> GetRoles(int userId)
-        {
-            return QuerySp<string>("sAppUserRole", new { userId });
-        }
-
         public IEnumerable<AppUser> GetAppUsers()
         {
             return QuerySp<AppUser>("sAppUser", null);
         }
 
-        public void UpdateAppUser(AppUser appUser)
+        public int SaveAppUser(AppUser appUser)
         {
-            ExecuteSp("uAppUser", appUser);
+            return QuerySingleSp<int>("uAppUser", new { appUser.UserId, appUser.UserName, appUser.UserFullName, appUser.Active, appUser.Reset });
         }
 
         public void DeleteAppUser(int userId)
         {
             ExecuteSp("dAppUser", new { userId });
+        }
+
+        public IEnumerable<Lookup> GetUserRoles(int userId)
+        {
+            return QuerySp<Lookup>("sAppUserRole", new { userId });
+        }
+
+        public void DeleteUserRoles(int userId)
+        {
+            ExecuteSp("dAppUserRole", new { userId });
+        }
+
+        public void SaveUserRole(int userId, int roleId)
+        {
+            ExecuteSp("iAppUserRole", new { userId, roleId });
         }
 
 

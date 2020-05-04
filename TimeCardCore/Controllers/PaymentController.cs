@@ -9,9 +9,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using TimeCard.Repo.Repos;
 using TimeCardCore.Models;
+using TimeCardCore.Infrastructure;
 
 namespace TimeCardCore.Controllers
 {
+    [Authorize("Contractor","Read")]
     public class PaymentController : BaseController
     {
         private readonly PaymentRepo _PaymentRepo;

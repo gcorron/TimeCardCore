@@ -109,5 +109,6 @@
     <Build Include="dbo\Stored Procedures\dAppUserRole.sql" />
     <Build Include="dbo\Stored Procedures\dAppUser.sql" />
     <Build Include="dbo\Stored Procedures\dAppRole.sql" />
+    <Build Include="dbo\Stored Procedures\iAppUserRole.sql" />
   </ItemGroup>
 </Project>

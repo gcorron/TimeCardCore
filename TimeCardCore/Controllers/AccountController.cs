@@ -31,20 +31,64 @@ namespace TimeCardCore.Controllers
         [Authorize("Admin", "Read")]
         public IActionResult Index()
         {
-            var vm = new AppUserViewModel { EditAppUser = new TimeCard.Domain.AppUser() };
-            PrepAppUser(vm);
+            var vm = new AppUserViewModel();
+            PrepAppUser(vm,false);
             return View(vm);
         }
 
-        private void PrepAppUser(AppUserViewModel vm)
+        [HttpPost]
+        [Authorize("Admin", "Write")]
+        public IActionResult Index(AppUserViewModel vm, string buttonValue)
         {
+            bool retainEdit = false;
+            switch (buttonValue)
+            {
+                case "Save":
+                    if (ModelState.IsValid)
+                    {
+                        int userId =_AppUserRepo.SaveAppUser(vm.EditAppUser);
+                        _AppUserRepo.DeleteUserRoles(userId);
+                        foreach(var role in vm.EditAppUser.Roles.Where(x => x.Active))
+                        {
+                            _AppUserRepo.SaveUserRole(userId, role.Id);
+                        }
+                    }
+                    else
+                    {
+                        retainEdit = true;
+                    }
+                    break;
+                case "Delete":
+                    _AppUserRepo.DeleteAppUser(vm.EditAppUser.UserId);
+                    break;
+            }
+            PrepAppUser(vm,retainEdit);
+            return View(vm);
+        }
+
+
+
+
+        private void PrepAppUser(AppUserViewModel vm, bool retainEdit)
+        {
+            
             vm.AppUsers = _AppUserRepo.GetAppUsers().OrderBy(x => x.UserName);
+            foreach(var user in vm.AppUsers)
+            {
+                user.Roles = _AppUserRepo.GetUserRoles(user.UserId).Where(x => x.Active).OrderBy(x => x.Descr).ToArray();
+            }
+
+            if (!retainEdit)
+            {
+                vm.EditAppUser = new TimeCard.Domain.AppUser { Active = true };
+                ModelState.Clear();
+            }
+            vm.EditAppUser.Roles = _AppUserRepo.GetUserRoles(vm.EditAppUser.UserId).ToArray();
         }
 
         public IActionResult AccessDenied()
         {
-
-            return View();
+            return Redirect("Login");
         }
 
         [HttpPost]
@@ -54,48 +98,66 @@ namespace TimeCardCore.Controllers
             return Ok();
         }
 
+        public IActionResult Login()
+        {
+            return View(new LoginViewModel());
+        }
+
         [HttpPost]
         public IActionResult Login(LoginViewModel vm)
         {
-            var login = _AppUserRepo.Login(vm.UserName, vm.Password);
             string message="Internal error";
-            switch (login.Result)
+            if (vm.Reset && (vm.NewPassword == null || vm.NewPassword != vm.ConfirmNewPassword))
             {
-                case "OK":
-                    var roles = _AppUserRepo.GetRoles(login.UserId);
-                    var claims = new List<Claim>
+                message = vm.NewPassword == null ? "New Password Required." : "Passwords do not match";
+            }
+            else
+            {
+                var login = _AppUserRepo.Login(vm.UserName, vm.Password, vm.Reset ? vm.NewPassword : null);
+                switch (login.Result)
+                {
+                    case "RESET":
+                        vm.Reset = true;
+                        ModelState.Clear();
+                        message = "Please change your password.";
+                        break;
+                    case "OK":
+                        var roles = _AppUserRepo.GetUserRoles(login.UserId).Where(x => x.Active).Select(x => x.Descr);
+                        var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Name, vm.UserName),
                         new Claim("UserId",login.UserId.ToString()),
                         new Claim("FullName",login.UserFullName),
                         new Claim("ContractorId",login.ContractorId.ToString())
                     };
-                    foreach(var role in roles)
-                    {
-                        claims.Add(new Claim("Role", role));
-                    }
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    var authProperties = new AuthenticationProperties
-                    {
-                        IsPersistent = vm.RememberMe,
-                        IssuedUtc = login.LoginTime,
-                        RedirectUri = "/",
-                        ExpiresUtc = DateTimeOffset.Now.AddDays(99999)
-                    };
-                    HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme,
-                        new ClaimsPrincipal(claimsIdentity),
-                        authProperties);
-                    return Redirect("/");
-                case "NO":
-                    message = "User Name or Password is invalid.";
-                    break;
-                case "LOCKOUT":
-                    message = "Maximum tries exceeded.";
-                    break;
+                        foreach (var role in roles)
+                        {
+                            claims.Add(new Claim("Role", role));
+                        }
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        var authProperties = new AuthenticationProperties
+                        {
+                            IsPersistent = vm.RememberMe,
+                            IssuedUtc = login.LoginTime,
+                            RedirectUri = "/",
+                            ExpiresUtc = DateTimeOffset.Now.AddDays(99999)
+                        };
+                        HttpContext.SignInAsync(
+                            CookieAuthenticationDefaults.AuthenticationScheme,
+                            new ClaimsPrincipal(claimsIdentity),
+                            authProperties);
+                        return Redirect("/");
+                    case "NO":
+                        message = "User Name or Password is invalid.";
+                        break;
+                    case "LOCKOUT":
+                        message = "Maximum tries exceeded.";
+                        break;
+                }
             }
+
             ModelState.AddModelError("failed", message);
-            return View("AccessDenied", vm);
+            return View(vm);
         }
 
     }

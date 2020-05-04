@@ -13,7 +13,7 @@ from work w
 	join jobStart js on w.contractorId = js.contractorId and w.jobId=js.jobId
 	join lookup l2 on j.billType=l2.id
 	join lookup l5 on w.workType=l5.id
-where (w.contractorId=@contractorId or @contractorId = 0)
+where w.contractorId=@contractorId
 and (
 	(@payCycle = 0 and (floor(workday) between js.startDay and @workDay))
 	or (@payCycle = 1 and (floor(workday) = floor(@workDay)))

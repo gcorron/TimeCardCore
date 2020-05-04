@@ -1,5 +1,7 @@
-﻿create procedure sAppUserRole @userId int
+﻿CREATE procedure [dbo].[sAppUserRole] @userId int
 as
-select descr
-from AppUserRole r join lookup l on r.roleId=l.id
-where r.userId=@userId
+-- exec sAppUserRole 1
+select id, l.descr,case when r.userId is null then 0 else 1 end active
+from lookup l
+	join lookupgroup g on l.groupId=g.GroupId and g.Descr='Role'
+	left outer join AppUserRole r on l.id=r.roleId and r.userId=@userId

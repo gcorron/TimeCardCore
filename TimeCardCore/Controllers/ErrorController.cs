@@ -8,7 +8,7 @@ namespace TimeCardCore.Controllers
 {
     public class ErrorController : Controller
     {
-        public IActionResult Forbidden()
+        public ActionResult NoPermission()
         {
             return View();
         }
