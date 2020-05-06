@@ -17,11 +17,6 @@ namespace TimeCard.Repo.Repos
             return QuerySingleSp<Login>("sLogin", new { userName, password, newpassword });
         }
 
-        public void UpdateLogin(string userName, string password)
-        {
-            ExecuteSp("uLogin", new { userName, password });
-        }
-
         public IEnumerable<AppUser> GetAppUsers()
         {
             return QuerySp<AppUser>("sAppUser", null);
@@ -52,6 +47,15 @@ namespace TimeCard.Repo.Repos
             ExecuteSp("iAppUserRole", new { userId, roleId });
         }
 
+        public Contractor GetContractor(int contractorId)
+        {
+            return QuerySingleSp<Contractor>("sContractor", new { contractorId });
+        }
+
+        public void SaveContractor(Contractor contractor)
+        {
+            ExecuteSp("uContractor", contractor);
+        }
 
     }
 }

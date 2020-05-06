@@ -5,8 +5,8 @@ as
 declare @passwordHash binary(64)=HASHBYTES('SHA2_512',@password)
 
 
-insert AppUser (userName,userFullName,passwordHash, passwordExpiry,lastLogin,loginAttempts,active)
-	values(@userName,@userName,@passwordHash,dateadd(year,1,getdate()),null,0,1)
+insert AppUser (userName,userFullName,passwordHash, lastLogin,loginAttempts,active)
+	values(@userName,@userName,@passwordHash,null,0,1)
 
 declare @userId int = SCOPE_IDENTITY()
 declare @roleId int

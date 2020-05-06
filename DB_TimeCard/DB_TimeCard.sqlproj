@@ -85,7 +85,6 @@
     <Build Include="dbo\Stored Procedures\sLookup.sql" />
     <Build Include="dbo\Stored Procedures\sJobTimeCardUnpaidCycles.sql" />
     <Build Include="dbo\Stored Procedures\sJobStart.sql" />
-    <Build Include="dbo\Stored Procedures\sJobs.sql" />
     <Build Include="dbo\Stored Procedures\sJobPaidThruDate.sql" />
     <Build Include="dbo\Stored Procedures\sJob.sql" />
     <Build Include="dbo\Stored Procedures\dWork.sql" />
@@ -97,7 +96,6 @@
     <Build Include="dbo\Tables\AppUserRole.sql" />
     <Build Include="dbo\Tables\AppUser.sql" />
     <Build Include="dbo\Tables\AppRole.sql" />
-    <Build Include="dbo\Stored Procedures\uLogin.sql" />
     <Build Include="dbo\Stored Procedures\uAppUserSeedAdmin.sql" />
     <Build Include="dbo\Stored Procedures\uAppUserRole.sql" />
     <Build Include="dbo\Stored Procedures\uAppUser.sql" />
@@ -110,5 +108,15 @@
     <Build Include="dbo\Stored Procedures\dAppUser.sql" />
     <Build Include="dbo\Stored Procedures\dAppRole.sql" />
     <Build Include="dbo\Stored Procedures\iAppUserRole.sql" />
+    <Build Include="dbo\Tables\WorkOpen.sql" />
+    <Build Include="dbo\Tables\Contractor.sql" />
+    <Build Include="dbo\Stored Procedures\uWorkOpen.sql" />
+    <Build Include="dbo\Stored Procedures\uContractor.sql" />
+    <Build Include="dbo\Stored Procedures\sWorkOpen.sql" />
+    <Build Include="dbo\Stored Procedures\sJobsWork.sql" />
+    <Build Include="dbo\Stored Procedures\sJobsNotUsed.sql" />
+    <Build Include="dbo\Stored Procedures\sContractor.sql" />
+    <Build Include="dbo\Stored Procedures\iJob.sql" />
+    <Build Include="dbo\Stored Procedures\dJob.sql" />
   </ItemGroup>
 </Project>

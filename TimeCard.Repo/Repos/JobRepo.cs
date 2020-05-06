@@ -13,7 +13,6 @@ namespace TimeCard.Repo.Repos
         {
 
         }
-
         public IEnumerable<Job> GetJobStart(int contractorId)
         {
             return QuerySp<Job>("sJobStart", new { contractorId });
@@ -29,6 +28,26 @@ namespace TimeCard.Repo.Repos
             return QuerySingleSp<Job>("sJob", new { jobId });
         }
 
+        public IEnumerable<Lookup> GetJobsForWork(int contractorId, decimal startDay)
+        {
+            string addFirstRow = "- Select -";
+            var data = QuerySp<Lookup>("sJobsWork", new { contractorId, startDay });
+            return new Lookup[] { new Lookup { Id = 0, Descr = addFirstRow } }.Union(data);
+        }
 
+        public IEnumerable<Lookup> GetJobsUnused()
+        {
+            return QuerySp<Lookup>("sJobsNotUsed",null);
+        }
+
+        public void SaveJob(int clientId, int projectId, int billType)
+        {
+            ExecuteSp("iJob", new { clientId, projectId, billType });
+        }
+
+        public void DeleteJob(int jobId)
+        {
+            ExecuteSp("dJob", new { jobId });
+        }
     }
 }

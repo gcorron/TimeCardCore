@@ -1,0 +1,39 @@
+﻿@model TimeCard.Domain.Contractor 
+    <div class="modal-header bg-secondary">
+        <h5 class="text-light">Contractor Invoice Data</h5>
+        <button type="button" title="Close" onclick="$(this).closest('.modal').modal('hide');">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+<div class="modal-body">
+    <form id="formContractor" autocomplete="off">
+        <div class="row">
+            <div id="saveAlertContractor" class="alert alert-danger col-md-12" style="display:none;">
+                <div asp-validation-summary="All"></div>
+            </div>
+        </div>
+        <div class="form-group form-row">
+            <label class="col-4 col-form-label text-right">Invoice Name</label>
+            <div class="col-8">
+                <input asp-for="InvoiceName" class="form-control" />
+                <input asp-for="ContractorId" type="hidden" />
+            </div>
+        </div>
+        <div class="form-group form-row">
+            <div class="col-4 col-form-label text-right">Invoice Address</div>
+            <div class="col-8">
+                <textarea asp-for="InvoiceAddress" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="form-group form-row">
+            <div class="col-4 col-form-label text-right">Rate</div>
+            <div class="col-4">
+                <input asp-for="Rate" class="form-control" type="number" />
+            </div>
+            <div class="col-4 text-right">
+                <button id="btnSaveContractor" class="btn btn-default fa fa-2x fa-check" type="button" title="Save"></button>
+            </div>
+        </div>
+
+    </form>
+</div>

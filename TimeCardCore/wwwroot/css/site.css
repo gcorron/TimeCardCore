@@ -84,3 +84,7 @@ label.col-form-label {
 .input-validation-error {
     background-color: #ffcaca;
 }
+
+.col-form-label {
+    font-weight: bold;
+}

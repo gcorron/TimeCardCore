@@ -14,6 +14,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using TimeCardCore.Infrastructure;
+using System.Diagnostics.Contracts;
 
 namespace TimeCardCore.Controllers
 {
@@ -22,12 +23,16 @@ namespace TimeCardCore.Controllers
     {
         private readonly WorkRepo _WorkRepo;
         private readonly PaymentRepo _PaymentRepo;
+        private readonly JobRepo _JobRepo;
+        private readonly AppUserRepo _AppUserRepo;
         
 
         public WorkController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)
         {
             _WorkRepo = new WorkRepo(ConnString);
             _PaymentRepo = new PaymentRepo(ConnString);
+            _JobRepo = new JobRepo(ConnString);
+            _AppUserRepo = new AppUserRepo(ConnString);
         }
 
         
@@ -41,14 +46,23 @@ namespace TimeCardCore.Controllers
         [HttpPost]
         public ActionResult Index(Models.WorkViewModel vm, string buttonValue)
         {
+            bool clearEdit = false;
             switch (buttonValue)
             {
+                case "OpenClose":
+                    _WorkRepo.ToggleWorkOpen(vm.SelectedContractorId, vm.SelectedCycle);
+                    ModelState.Clear();
+                    break;
                 case "Save":
                     if (ModelState.IsValid)
                     {
                         var work = vm.EditWork;
+                        clearEdit = work.WorkId == 0;
                         _WorkRepo.SaveWork(work);
-                        vm.EditWork = null;
+                        if (!clearEdit)
+                        {
+                            vm.EditWork = null;
+                        }
                         ModelState.Clear();
                     }
                     break;
@@ -62,26 +76,38 @@ namespace TimeCardCore.Controllers
                     ModelState.Clear();
                     break;
             }
-            prepWork(vm);
+            prepWork(vm, clearEdit);
             return View(vm);
         }
 
 
-        private void prepWork(Models.WorkViewModel vm)
+        private void prepWork(Models.WorkViewModel vm, bool clearEdit = false)
         {
             var cycles = GetPayCycles();
             int cycle = int.Parse(cycles.First().Value);
-            vm.Jobs = _WorkRepo.GetJobs("- Select -").Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
+            vm.Jobs = _JobRepo.GetJobsForWork(vm.SelectedContractorId, vm.SelectedCycle).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
             vm.WorkTypes = LookupRepo.GetLookups("WorkType", "- Select -").Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
             vm.PayCycles = cycles;
+            vm.IsCycleOpen = false;
+            vm.CanCloseCycle = true;
             if (vm.SelectedCycle == 0)
             {
                 vm.SelectedCycle = cycle;
             }
+            if (vm.SelectedCycle == cycle)
+            {
+                vm.IsCycleOpen = true;
+                vm.CanCloseCycle = false;
+            }
+
             vm.WorkEntries = _WorkRepo.GetWork(vm.SelectedContractorId, vm.SelectedCycle, true);
             if (vm.EditWork == null)
             {
                 vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.SelectedContractorId, WorkDay = DateRef.GetWorkDay(DateTime.Today) };
+            }
+            if (clearEdit)
+            {
+                vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.SelectedContractorId, WorkDay = vm.EditWork.WorkDay, JobId=vm.EditWork.JobId, WorkType=vm.EditWork.WorkType };
             }
             vm.EditDays = GetEditDays(vm.SelectedCycle);
             vm.DailyTotals = new decimal[2][];
@@ -93,6 +119,11 @@ namespace TimeCardCore.Controllers
                     vm.DailyTotals[i][j] = vm.WorkEntries.Where(x => x.WeekDay == j + i * 7).Sum(x => x.Hours);
                     vm.DailyTotals[i][7] += vm.DailyTotals[i][j];
                 }
+            }
+
+            if (!vm.IsCycleOpen)
+            {
+                vm.IsCycleOpen = _WorkRepo.GetWorkOpen(vm.SelectedContractorId).Any(x => x == vm.SelectedCycle);
             }
         }
 
@@ -269,6 +300,8 @@ namespace TimeCardCore.Controllers
             using (var templatePackage = new ExcelPackage(templateFile))
             {
                 var templateSheet = templatePackage.Workbook.Worksheets["Invoice"];
+                var contractor = _AppUserRepo.GetContractor(contractorId);
+
                 var file = new FileInfo($"C:\\TEMP\\{name}_Invoices.xlsx");
                 System.IO.File.Delete(file.FullName);
 
@@ -282,6 +315,10 @@ namespace TimeCardCore.Controllers
                         sheet.Cells[2, 6].Value = $"{DateTime.Today: M/d/yyyy}";
                         sheet.Cells[9, 3].Value = first.Client;
                         sheet.Cells[10, 3].Value = first.Project;
+                        sheet.Cells[2, 2].Value = contractor.InvoiceName;
+                        sheet.Cells[3, 2].Value = contractor.InvoiceAddress;
+                        sheet.Cells[11, 3].Value = contractor.Rate;
+
                         int currentRow = blankRow + 1;
 
                         foreach (var entry in inv)

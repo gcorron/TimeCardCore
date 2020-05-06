@@ -9,7 +9,13 @@
         width: 24%;
     }
 </style>
-<div class="row mt-3" style="max-height:700px; overflow-y:auto; position:relative;">
+
+<div class="row">
+    <div class="col-2 ml-auto">
+        <button id="btnAddJob" class="btn btn-primary" type="button">Add/Remove</button>
+    </div>
+</div>
+<div class="row mt-3" style="max-height:80vh; overflow-y:auto; position:relative;">
     <div class="col-md-12">
         <table class="table table-sm table-striped table-hover">
             <thead class="sticky">
@@ -48,53 +54,106 @@
         </table>
     </div>
 </div>
-
+<div id="modalAdd" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
 
 @Html.HiddenFor(m => m.ContractorId)
 
 @section scripts {
 
     <script>
-    $(function () {
-        $("button.fa-pencil, button.fa-plus").click(function () {
-            var tr = $(this).closest('tr');
-            var isNew = $(this).hasClass('fa-plus');
-            var btn = isNew ? "btn-create" : "btn-adjust";
-            tr.find("button." + btn).show();
+        $(function () {
+            $("button.fa-pencil, button.fa-plus").click(function () {
+                var tr = $(this).closest('tr');
+                var isNew = $(this).hasClass('fa-plus');
+                var btn = isNew ? "btn-create" : "btn-adjust";
+                tr.find("button." + btn).show();
 
-            hideShowEdit(tr, true);
-            var span = tr.find('span.span-date')
-            var input = tr.find("input.edit-date");
-            var theDate = span.html();
-            if (theDate.length) {
-                theDate = theDate.substr(6, 4) + "-" + theDate.substr(0, 5).replace("/", "-");
-                input.val(theDate);
-            }
-        });
-
-        $("button.btn-create, button.btn-adjust").click(function () {
-            var tr = $(this).closest('tr');
-            var jobId = tr.data("edit").JobId;
-            var span = tr.find('span.span-date')
-            var input = tr.find("input.edit-date");
-            var theDate = input.val();
-            if (theDate.length) {
-                theDate = theDate.substr(5, 5).replace("-", "/") + "/" + theDate.substr(0, 4);
-            }
-            var isNew = $(this).hasClass("btn-create");
-
-            $.ajax({
-                type: "POST",
-                url: "Job/SetJobDate",
-                data: { contractorId: @Model.ContractorId, jobId: jobId, theDate: theDate, isNew: isNew },
-                success: function () {
-                    span.html(theDate);
-                    hideShowEdit(tr,false);
+                hideShowEdit(tr, true);
+                var span = tr.find('span.span-date')
+                var input = tr.find("input.edit-date");
+                var theDate = span.html();
+                if (theDate.length) {
+                    theDate = theDate.substr(6, 4) + "-" + theDate.substr(0, 5).replace("/", "-");
+                    input.val(theDate);
                 }
             });
 
-        });
+            $("button.btn-create, button.btn-adjust").click(function () {
+                var tr = $(this).closest('tr');
+                var jobId = tr.data("edit").JobId;
+                var span = tr.find('span.span-date')
+                var input = tr.find("input.edit-date");
+                var theDate = input.val();
+                if (theDate.length) {
+                    theDate = theDate.substr(5, 5).replace("-", "/") + "/" + theDate.substr(0, 4);
+                }
+                var isNew = $(this).hasClass("btn-create");
 
+                $.ajax({
+                    type: "POST",
+                    url: "Job/SetJobDate",
+                    data: { contractorId: @Model.ContractorId, jobId: jobId, theDate: theDate, isNew: isNew },
+                    success: function () {
+                        span.html(theDate);
+                        hideShowEdit(tr, false);
+                    }
+                });
+
+            });
+
+            $("#btnAddJob").click(function () {
+                showAddModal();
+            });
+
+            $("#modalAdd").on("click", "#btnSaveJob", function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/Job/SaveJob",
+                    data: $("#formAddJob").serialize(),
+                    success: function (html) {
+                        if ($(html).find("#saveAlertAddJob div.validation-summary-valid").length == 0) {
+                            $("#modalAdd div.modal-content").html(html);
+                            $("#saveAlertAddJob").show();
+                        }
+                        else {
+                            $("#modalAdd").modal("hide");
+                            location = "/Job";
+                        }
+                    }
+                });
+            });
+
+            $("#modalAdd").on("change", "#SelectedJobId", function () {
+                $("#btnRemoveJob").prop("disabled", $(this).val() == 0);
+            });
+
+            $("#modalAdd").on("click", "#btnRemoveJob", function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/Job/DeleteJob",
+                    data: { jobId: $("#SelectedJobId").val()},
+                    success: function (response) {
+                        if (response.success) {
+                            $("#modalAdd").modal("hide");
+                            location = "/Job";
+                        }
+                        else
+                        {
+                            $("#saveAlertAddJob").html(response.message).show();
+                        }
+                    }
+                });
+
+            });
+
+        if ($("#saveAlertJob div.validation-summary-valid").length == 0) {
+            $("#saveAlertJob").show();
+        }
     });
 
     function hideShowEdit(tr, show) {
@@ -115,6 +174,17 @@
         }
     }
 
+        function showAddModal() {
+            $.ajax({
+                type: "POST",
+                url: "/Job/AddJob",
+                data: {},
+                success: function (html) {
+                    $("#modalAdd div.modal-content").html(html);
+                    $("#modalAdd").modal("show");
+                }
+            });
+    }
 
     </script>
 

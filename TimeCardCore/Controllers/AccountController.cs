@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
+using TimeCard.Domain;
 using TimeCard.Repo.Repos;
 using TimeCardCore.Infrastructure;
 using TimeCardCore.Models;
@@ -159,6 +160,28 @@ namespace TimeCardCore.Controllers
             ModelState.AddModelError("failed", message);
             return View(vm);
         }
+
+        [HttpPost]
+        public IActionResult GetContractor(int userId)
+        {
+            var contractor = _AppUserRepo.GetContractor(userId);
+            if (contractor == null)
+            {
+                contractor = new Contractor { ContractorId = userId };
+            }
+            return PartialView("_ContractorModal", contractor);
+        }
+
+        [HttpPost]
+        public IActionResult SaveContractor(Contractor contractor)
+        {
+            if (ModelState.IsValid)
+            {
+                _AppUserRepo.SaveContractor(contractor);
+            }
+            return PartialView("_ContractorModal",contractor);
+        }
+
 
     }
 }

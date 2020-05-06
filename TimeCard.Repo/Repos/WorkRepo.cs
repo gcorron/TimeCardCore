@@ -40,17 +40,15 @@ namespace TimeCard.Repo.Repos
             return QuerySp<WorkSummary>("sWorkSummary", new { contractorId });
         }
 
-        public IEnumerable<Lookup> GetJobs(string addFirstRow = null)
+        public IEnumerable<int> GetWorkOpen(int contractorId)
         {
-            var data = QuerySp<Lookup>("sJobs", null);
-            if (addFirstRow != null)
-            {
-                return new Lookup[] { new Lookup { Id = 0, Descr = addFirstRow } }.Union(data);
-            }
-            else
-            {
-                return data;
-            }
+            return QuerySp<int>("sWorkOpen", new { contractorId });
         }
+
+        public void ToggleWorkOpen(int contractorId, int workCycle)
+        {
+            ExecuteSp("uWorkOpen", new { contractorId, workCycle });
+        }
+
     }
 }

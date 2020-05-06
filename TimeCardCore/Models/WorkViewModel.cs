@@ -18,5 +18,7 @@ namespace TimeCardCore.Models
         public int SelectedContractorId { get; set; }
         public string SelectedContractorDescr { get; set; }
         public Work EditWork { get; set; }
+        public bool IsCycleOpen { get; set; }
+        public bool CanCloseCycle { get; set; }
     }
 }

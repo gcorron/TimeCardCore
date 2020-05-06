@@ -57,22 +57,33 @@
                 <th>Active</th>
                 <th>Last Login</th>
                 <th>Roles</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var user in Model.AppUsers)
             {
-                <tr class="tr-clickable" data-edit=@Json.Serialize(new { user.UserId, user.Active, RoleIds = user.Roles.Select(x => x.Id) }) style="cursor:pointer;">
+                <tr class="tr-clickable" data-edit=@Json.Serialize(new { user.UserId, user.ContractorId, user.Active, RoleIds = user.Roles.Select(x => x.Id) }) style="cursor:pointer;">
                     <td>@user.UserName</td>
                     <td>@user.UserFullName</td>
                     <td>@user.Active</td>
                     <td>@user.LastLogin</td>
                     <td>@(string.Join(", ", user.Roles.Select(x => x.Descr).ToArray()))</td>
+                    <td><button class="btn btn-default btn-address fa fa-address-card" title="Address/Rate" type="button" style="display:@(user.Roles.Where(x => x.Descr=="Contractor").Any() ? "normal" : "none");"></button></td>
                 </tr>
             }
         </tbody>
     </table>
 </form>
+
+<div id="addressModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+
+</div>
+
 @section scripts {
     <script>
     $(function () {
@@ -104,8 +115,44 @@
                  $(this).prop("checked", false);
              });
             showEditButtons();
+         });
+
+        $("button.btn-address").click(function () {
+            var id = $(this).closest("tr").data("edit").ContractorId;
+            $.ajax({
+                type: "POST",
+                url: "/Account/GetContractor",
+                data: { userId: id },
+                success: function (html) {
+                    $("#addressModal div.modal-content").html(html);
+                    $("#addressModal").modal("show");
+                }
+            });
+            return false;
         });
 
+        $("#addressModal").on("click", "#btnSaveContractor", function () {
+            var $form = $("#formContractor");
+            $.validator.unobtrusive.parse($form);
+            $form.validate();
+            if ($form.valid()) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Account/SaveContractor",
+                        data: $form.serialize(),
+                        success: function (html) {
+                            if ($(html).find("#saveAlertContractor div.validation-summary-valid").length == 0) {
+                                $("#addressModal div.modal-content").html(html);
+                                $("#saveAlertContractor").show();
+                            }
+                            else {
+                                $("#addressModal").modal("hide");
+                            }
+                            
+                        }
+                    });
+            }
+        });
 
         showEditButtons();
     });

@@ -18,5 +18,7 @@ namespace TimeCard.Domain
         public bool Reset { get; set; }
         public DateTime? LastLogin { get; set; }
         public Lookup[] Roles { get; set; }
+        public int ContractorId { get; set; }
+
     }
 }
