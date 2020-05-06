@@ -32,13 +32,6 @@ namespace TimeCardCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(30);
-                options.Cookie.HttpOnly = false;
-                options.Cookie.IsEssential = true;
-            });
-
             services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
             var mvc = services.AddControllersWithViews()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
@@ -72,7 +65,7 @@ namespace TimeCardCore
             }
             //app.UseHttpsRedirection();
 
-            app.UseCookiePolicy();
+           // app.UseCookiePolicy();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseStatusCodePages(async context =>
@@ -85,7 +78,6 @@ namespace TimeCardCore
             });
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseSession();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(

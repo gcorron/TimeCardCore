@@ -139,15 +139,14 @@ namespace TimeCardCore.Controllers
                         var authProperties = new AuthenticationProperties
                         {
                             IsPersistent = vm.RememberMe,
-                            IssuedUtc = login.LoginTime,
-                            RedirectUri = "/",
-                            ExpiresUtc = DateTimeOffset.Now.AddDays(99999)
+                            IssuedUtc = login.LastLogin,
+                            ExpiresUtc = DateTimeOffset.Now.AddDays(14),
                         };
                         HttpContext.SignInAsync(
                             CookieAuthenticationDefaults.AuthenticationScheme,
                             new ClaimsPrincipal(claimsIdentity),
                             authProperties);
-                        return Redirect("/");
+                        return Redirect("/Work");
                     case "NO":
                         message = "User Name or Password is invalid.";
                         break;

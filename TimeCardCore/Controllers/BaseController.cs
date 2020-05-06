@@ -20,8 +20,6 @@ namespace TimeCardCore.Controllers
         private readonly int _curContractorId;
         private readonly string _curUserName;
 
-        protected readonly ISession Session;
-
         protected int CurrentUserId { get => _curUserId; }
         protected string CurrentUsername { get => _curUserName; }
         protected int ContractorId { get => _curContractorId; }
@@ -31,7 +29,6 @@ namespace TimeCardCore.Controllers
             ConnString = config.GetConnectionString("TimeCard");
             LookupRepo = new LookupRepo(ConnString);
             _webHostEnvironment = webHostEnvironment;
-            Session = httpContextAccessor.HttpContext.Session;
             var user = httpContextAccessor.HttpContext.User;
             if (user.Identity.IsAuthenticated)
             {

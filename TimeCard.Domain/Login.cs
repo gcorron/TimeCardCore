@@ -10,6 +10,6 @@ namespace TimeCard.Domain
         public int UserId { get; set; }
         public string UserFullName { get; set; }
         public int ContractorId { get; set; }
-        public DateTime LoginTime { get; set; }
+        public DateTime LastLogin { get; set; }
     }
 }
