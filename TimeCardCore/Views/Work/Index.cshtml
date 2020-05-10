@@ -41,6 +41,31 @@
                             </div>
                             <div class="col-md-5 alert alert-warning" id="alertHeader" style="display:none;"></div>
                         </div>
+                        <table class="table table-bordered table-sm my-table-centered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Sat</th>
+                                    <th>Sun</th>
+                                    <th>Mon</th>
+                                    <th>Tue</th>
+                                    <th>Wed</th>
+                                    <th>Thu</th>
+                                    <th>Fri</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < 2; i++)
+                                {
+                                    <tr>
+                                        @for (int j = 0; j < 8; j++)
+                                        {
+                                            <td>@Model.DailyTotals[i][j]</td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                     <div id="divEdit" class="card-body pb-1 @(Model.EditWork.WorkId == 0 ? "bg-success" : "bg-info" )"
                          @(Model.IsCycleOpen ? "" : "style=display:none;" )>
@@ -82,57 +107,35 @@
                         </div>
                     </div>
                 </div>
-                <table class="table table-bordered table-sm my-table-centered mt-3">
-                    <thead>
-                        <tr>
-                            <th>Sat</th>
-                            <th>Sun</th>
-                            <th>Mon</th>
-                            <th>Tue</th>
-                            <th>Wed</th>
-                            <th>Thu</th>
-                            <th>Fri</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (int i = 0; i < 2; i++)
-                        {
-                            <tr>
-                                @for (int j = 0; j < 8; j++)
-                                {
-                                    <td>@Model.DailyTotals[i][j]</td>
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                <div class="row" style="max-height: 55vh; overflow-y:auto; position:relative;">
+                <div class="row" >
                     <div class="col-md-12">
-                        <table class="table table-sm table-striped table-hover">
-                            <thead class="sticky">
-                                <tr>
-                                    <th class="work-col-1">Date</th>
-                                    <th class="work-col-2">Job</th>
-                                    <th class="work-col-1 text-right">Hours</th>
-                                    <th class="work-col-1">Type</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @{ foreach (var entry in Model.WorkEntries)
-                                    {
-                                        <tr class="work-row" data-edit=@(Json.Serialize(new  { entry.WorkId, entry.JobId, entry.WorkDay,entry.WorkType }))>
-                                            <td class="work-col-1">@entry.WorkDate</td>
-                                            <td class="work-col-2">@entry.Job</td>
-                                            <td class="work-col-1 text-right">@entry.Hours</td>
-                                            <td class="work-col-1">@entry.WorkTypeDescr</td>
-                                            <td>@entry.Descr</td>
-                                        </tr>
+                        <div style="max-height: 55vh; overflow-y:auto; position:relative;">
+                            <table class="table table-sm table-striped table-bordered table-hover">
+                                <thead class="sticky">
+                                    <tr>
+                                        <th class="work-col-1">Date</th>
+                                        <th class="work-col-2">Job</th>
+                                        <th class="work-col-1 text-right">Hours</th>
+                                        <th class="work-col-1">Type</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ foreach (var entry in Model.WorkEntries)
+                                        {
+                                            <tr class="work-row" data-edit=@(Json.Serialize(new  { entry.WorkId, entry.JobId, entry.WorkDay,entry.WorkType }))>
+                                                <td class="work-col-1">@entry.WorkDate</td>
+                                                <td class="work-col-2">@entry.Job</td>
+                                                <td class="work-col-1 text-right">@entry.Hours</td>
+                                                <td class="work-col-1">@entry.WorkTypeDescr</td>
+                                                <td>@entry.Descr</td>
+                                            </tr>
+                                        }
                                     }
-                                }
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
+
                     </div>
                 </div>
                 <input asp-for="SelectedContractorId" type="hidden" />
@@ -149,7 +152,6 @@
 @section scripts {
     <script>
         $(function () {
-
             $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
                 $("#formWork").validate().cancelSubmit = true;
             $("#formWork").submit();
@@ -166,6 +168,7 @@
             $("#@Html.IdFor(m => m.EditWork.WorkType)").val(data.WorkType);
             $("#@Html.IdFor(m => m.EditWork.Descr)").val(cells[4]);
             $("#divEdit").addClass("bg-info").removeClass("bg-success");
+            $(".input-validation-error").removeClass("input-validation-error");
             showEditButtons();
         });
 

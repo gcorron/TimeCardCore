@@ -23,7 +23,7 @@ namespace TimeCard.Domain
             {
                 if (PaidThruDay == 0 )
                 {
-                    return "Current";
+                    return "";
                 }
                 else
                 {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -48,6 +49,7 @@ namespace TimeCardCore
             {
                 options.AllowSynchronousIO = true;
             });
+            services.AddDataProtection().PersistKeysToFileSystem(new System.IO.DirectoryInfo(@"c:\TEMP\"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

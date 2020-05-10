@@ -28,6 +28,14 @@ namespace TimeCard.Helpers
             return workDay;
         }
 
+        public static int CurrentWorkCycle
+        {
+            get
+            {
+                return (int)decimal.Floor(GetWorkDay(DateTime.Today));
+            }
+        }
+
         public static DateTime GetWorkDate(decimal workDay)
         {
             int cycle = (int)Decimal.Floor(workDay);
@@ -41,5 +49,6 @@ namespace TimeCard.Helpers
             DateTime refDate = DateTime.Parse(BaselineDate);
             return refDate.AddDays((double)(cycle * 14 + 13));
         }
+
     }
 }

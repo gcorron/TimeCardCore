@@ -14,9 +14,9 @@ namespace TimeCard.Repo.Repos
         {
         }
 
-        public IEnumerable<PaymentSummary> GetSummary(int contractorId)
+        public IEnumerable<PaymentSummary> GetSummary(int contractorId, int beforeCycle)
         {
-                return QuerySp<PaymentSummary>("sPaymentSummary", new { contractorId });
+                return QuerySp<PaymentSummary>("sPaymentSummary", new { contractorId, beforeCycle });
         }
 
         public IEnumerable<Payment> GetPaymentsForJob(int contractorId, int jobId)

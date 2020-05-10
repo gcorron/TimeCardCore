@@ -1,4 +1,4 @@
-﻿CREATE procedure [dbo].[sPaymentSummary] @contractorId int
+﻿CREATE procedure [dbo].[sPaymentSummary] @contractorId int, @beforeCycle int
 as
 -- exec sPaymentSummary 13
 ;with hourSummary (jobId, totalHours)
@@ -7,7 +7,7 @@ select w.jobId, sum(hours)
 from work w join job j on w.jobid=j.jobid
 left outer join jobStart js on j.jobId=js.jobId and js.contractorId=@contractorId
 where w.contractorid=@contractorid and j.active=1
-	and isnull(js.startDay,0)>0 and  w.workDay>=js.startDay
+	and isnull(js.startDay,0)>0 and  w.workDay>=js.startDay and w.workDay < @beforeCycle
 group by w.jobId
 )
 

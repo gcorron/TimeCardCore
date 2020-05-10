@@ -85,7 +85,6 @@ namespace TimeCardCore.Controllers
         {
             var cycles = GetPayCycles();
             int cycle = int.Parse(cycles.First().Value);
-            vm.Jobs = _JobRepo.GetJobsForWork(vm.SelectedContractorId, vm.SelectedCycle).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
             vm.WorkTypes = LookupRepo.GetLookups("WorkType", "- Select -").Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
             vm.PayCycles = cycles;
             vm.IsCycleOpen = false;
@@ -99,6 +98,8 @@ namespace TimeCardCore.Controllers
                 vm.IsCycleOpen = true;
                 vm.CanCloseCycle = false;
             }
+
+            vm.Jobs = _JobRepo.GetJobsForWork(vm.SelectedContractorId, vm.SelectedCycle).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
 
             vm.WorkEntries = _WorkRepo.GetWork(vm.SelectedContractorId, vm.SelectedCycle, true);
             if (vm.EditWork == null)
@@ -384,7 +385,7 @@ namespace TimeCardCore.Controllers
                     }
                     currentRow += 5;
 
-                    var paySummary = _PaymentRepo.GetSummary(contractorId)
+                    var paySummary = _PaymentRepo.GetSummary(contractorId, DateRef.CurrentWorkCycle)
                       .OrderBy(x => x.Client).ThenBy(x => x.Project).ThenBy(x => x.BillType);
                     var payments = _PaymentRepo.GetPayments(contractorId);
                     foreach (var summary in paySummary)

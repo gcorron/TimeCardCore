@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using TimeCard.Repo.Repos;
 using TimeCardCore.Models;
 using TimeCardCore.Infrastructure;
+using TimeCard.Helpers;
 
 namespace TimeCardCore.Controllers
 {
@@ -38,7 +39,7 @@ namespace TimeCardCore.Controllers
                 SelectedContractorId = ContractorId,
                 IsAdmin = false,
                 EditPayment = new TimeCard.Domain.Payment { ContractorId = ContractorId },
-                PaymentSummary = _PaymentRepo.GetSummary(ContractorId),
+                PaymentSummary = _PaymentRepo.GetSummary(ContractorId, DateRef.CurrentWorkCycle),
                 Payments = _PaymentRepo.GetPayments(ContractorId)
             };
             prepPayment(vm);
@@ -75,7 +76,7 @@ namespace TimeCardCore.Controllers
                     ModelState.Clear();
                     break;
                 case "Summary":
-                    vm.PaymentSummary = _PaymentRepo.GetSummary(vm.SelectedContractorId);
+                    vm.PaymentSummary = _PaymentRepo.GetSummary(vm.SelectedContractorId, DateRef.CurrentWorkCycle);
                     vm.Payments = _PaymentRepo.GetPayments(vm.SelectedContractorId);
                     prepPayment(vm);
                     return PartialView("_PaymentSummary", vm);

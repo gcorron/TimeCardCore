@@ -1,9 +1,14 @@
-﻿create function fJobPaidThruDate(@contractorId int, @jobId int) returns decimal(6,2)
+﻿CREATE function [dbo].[fJobPaidThruDate](@contractorId int, @jobId int) returns decimal(6,2)
 AS
 BEGIN
 	declare @hours decimal(18,2)
 	declare @workDay decimal(6,2)
 	set @hours=isnull((select sum(hours) from payment where contractorId=@contractorId and jobId=@jobId),0)
+	if @hours=0
+	begin
+		return null
+	end
+
 	;with cte(workDay, hours, running) as
 	(
 	select workDay, hours,running=sum(hours) over(order by workDay, workId ROWS UNBOUNDED PRECEDING)
