@@ -40,6 +40,7 @@ namespace TimeCardCore.Controllers
         {
             var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername };
             prepWork(vm);
+            throw new Exception("TEST");
             return View(vm);
         }
 
