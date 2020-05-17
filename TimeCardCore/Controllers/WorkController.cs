@@ -40,7 +40,6 @@ namespace TimeCardCore.Controllers
         {
             var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername };
             prepWork(vm);
-            throw new Exception("TEST");
             return View(vm);
         }
 
@@ -203,7 +202,7 @@ namespace TimeCardCore.Controllers
 
                     string endDate = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.CycleEndDate;
 
-                    var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{endDate.Replace("/", "")}_{name}_{tc.First().Client}_{tc.First().Project}.xlsx");
+                    var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{endDate.Replace("/", "")}_{name}_{tc.First().Client}_{tc.First().Project.Replace("/","")}.xlsx");
                     System.IO.File.Delete(file.FullName);
                     ExcelWorksheet sheet = null;
                     using (var package = new ExcelPackage(file))
@@ -211,7 +210,7 @@ namespace TimeCardCore.Controllers
                         var workBook = package.Workbook;
                         var first = tc.First();
                         int[] currentRow = { blankRow + 1, blankRow + 1 };
-                        var tcWeek = tc.GroupBy(w => new { tabName = $"{ w.Project} Week {w.WorkWeek + 1}", weekDate = w.WorkWeekDate, week = w.WorkWeek });
+                        var tcWeek = tc.GroupBy(w => new { tabName = $"{ w.Project.Replace("/","")} Week {w.WorkWeek + 1}", weekDate = w.WorkWeekDate, week = w.WorkWeek });
                         foreach (var week in tcWeek)
                         {
                             sheet = workBook.Worksheets.Add(week.Key.tabName, templateSheet);
@@ -224,7 +223,7 @@ namespace TimeCardCore.Controllers
                         foreach (var entry in tc)
                         {
                             var w = entry.WorkWeek;
-                            sheet = workBook.Worksheets[$"{ entry.Project} Week {entry.WorkWeek + 1}"];
+                            sheet = workBook.Worksheets[$"{ entry.Project.Replace("/","")} Week {entry.WorkWeek + 1}"];
                             sheet.InsertRow(currentRow[w], 1);
                             sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
 
@@ -258,7 +257,7 @@ namespace TimeCardCore.Controllers
 
         public void GenerateTimeBooks(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
-            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, true).Where(x => "SOW TB".Contains(x.BillType))
+            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType))
                 .GroupBy(g => new { g.ClientId, g.ProjectId });
 
             using (var templatePackage = new ExcelPackage(templateFile))
@@ -349,7 +348,7 @@ namespace TimeCardCore.Controllers
 
         public void GenerateSummary(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
-            var workSummary = _WorkRepo.GetWorkSummary(contractorId);
+            var workSummary = _WorkRepo.GetWorkSummary(contractorId).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle) ;
             var file = new FileInfo($"C:\\TEMP\\{name}_Summary.xlsx");
             System.IO.File.Delete(file.FullName);
             using (var templatePackage = new ExcelPackage(templateFile))
