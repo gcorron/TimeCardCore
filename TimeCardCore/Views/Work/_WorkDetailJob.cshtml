@@ -1,0 +1,36 @@
+﻿@model IEnumerable<TimeCard.Domain.Work>
+<div style="flex-grow:1;overflow-y:auto; overflow-x:hidden; position:relative;">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-sm table-striped table-bordered table-hover">
+                <thead class="sticky">
+                    <tr>
+                        <th class="work-col-1">Date</th>
+                        <th class="work-col-1 text-right">Hours</th>
+                        <th class="work-col-1">Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ foreach (var entry in Model)
+                        {
+                            <tr class="work-row">
+                                <td class="work-col-1">@entry.WorkDate</td>
+                                <td class="work-col-1 text-right">@entry.Hours</td>
+                                <td class="work-col-1">@entry.WorkTypeDescr</td>
+                                <td>@entry.Descr</td>
+                            </tr>
+                        }
+                    }
+                <tr class="work-row">
+                    <td></td>
+                    <td class="work-col-1 text-right">@Model.Sum(x => x.Hours)</td>
+                    <td class="work-col-1">Total</td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>

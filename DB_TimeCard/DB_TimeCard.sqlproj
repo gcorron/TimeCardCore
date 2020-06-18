@@ -118,5 +118,6 @@
     <Build Include="dbo\Stored Procedures\sContractor.sql" />
     <Build Include="dbo\Stored Procedures\iJob.sql" />
     <Build Include="dbo\Stored Procedures\dJob.sql" />
+    <Build Include="dbo\Stored Procedures\sWorkJobDetail.sql" />
   </ItemGroup>
 </Project>

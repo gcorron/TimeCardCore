@@ -25,7 +25,7 @@ namespace TimeCardCore.Controllers
         private readonly PaymentRepo _PaymentRepo;
         private readonly JobRepo _JobRepo;
         private readonly AppUserRepo _AppUserRepo;
-        
+
 
         public WorkController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)
         {
@@ -35,7 +35,7 @@ namespace TimeCardCore.Controllers
             _AppUserRepo = new AppUserRepo(ConnString);
         }
 
-        
+
         public IActionResult Index()
         {
             var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername };
@@ -108,14 +108,14 @@ namespace TimeCardCore.Controllers
             }
             if (clearEdit)
             {
-                vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.SelectedContractorId, WorkDay = vm.EditWork.WorkDay, JobId=vm.EditWork.JobId, WorkType=vm.EditWork.WorkType };
+                vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.SelectedContractorId, WorkDay = vm.EditWork.WorkDay, JobId = vm.EditWork.JobId, WorkType = vm.EditWork.WorkType };
             }
             vm.EditDays = GetEditDays(vm.SelectedCycle);
             vm.DailyTotals = new decimal[2][];
-            for(int i=0; i<2;i++)
+            for (int i = 0; i < 2; i++)
             {
                 vm.DailyTotals[i] = new decimal[8];
-                for (int j=0;j<7;j++)
+                for (int j = 0; j < 7; j++)
                 {
                     vm.DailyTotals[i][j] = vm.WorkEntries.Where(x => x.WeekDay == j + i * 7).Sum(x => x.Hours);
                     vm.DailyTotals[i][7] += vm.DailyTotals[i][j];
@@ -153,6 +153,12 @@ namespace TimeCardCore.Controllers
             return PartialView("_WorkSummaryJob", summary);
         }
 
+        [HttpPost]
+        public ActionResult WorkDetailJob(int contractorId, int jobId)
+        {
+            var detail = _WorkRepo.GetWorkJobDetail(contractorId, jobId);
+            return PartialView("_WorkDetailJob", detail);
+        }
         [HttpPost]
         public ActionResult GenerateDocs(int contractorId, int cycle)
         {

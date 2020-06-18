@@ -22,6 +22,9 @@
     <li class="nav-item">
         <a class="nav-link" data-toggle="tab" href="#summaryJob">Summary by Job</a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#detailJob">Detail by Job</a>
+    </li>
 </ul>
 <div class="tab-content">
     <div class="tab-pane active fade show" id="edit">
@@ -151,14 +154,35 @@
     <div class="tab-pane fade" id="summaryJob">
 
     </div>
+    <div class="tab-pane fade" id="detailJob">
+        <div class="row mt-4">
+            <label class="col-form-label col-2">Job</label>
+            <div class="col-3">
+                <select id="ddlJobsDetail" asp-items="Model.Jobs" class="form-control"></select>
+            </div>
+        </div>
+        <div id ="divDetailJobResults" class="row mt-4">
+
+        </div>
+    </div>
 </div>
 @section scripts {
     <script>
         $(function () {
             $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
                 $("#formWork").validate().cancelSubmit = true;
-            $("#formWork").submit();
-        });
+                $("#formWork").submit();
+            });
+            $("#ddlJobsDetail").change(function () {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("WorkDetailJob", "Work")',
+                    data: { contractorId: @Model.EditWork.ContractorId, jobId: $(this).val() },
+                    success: function (partialView) { 
+                        $("#divDetailJobResults").html(partialView);
+                    }
+                });
+            });
         $("tr.work-row").click(function () {
             $(this).addClass("bg-info").siblings().removeClass("bg-info");
             var data = $(this).data("edit");

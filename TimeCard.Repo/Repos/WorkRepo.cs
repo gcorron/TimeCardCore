@@ -40,6 +40,10 @@ namespace TimeCard.Repo.Repos
             return QuerySp<WorkSummary>("sWorkSummary", new { contractorId });
         }
 
+        public IEnumerable<Work> GetWorkJobDetail(int contractorId, int jobId)
+        {
+            return QuerySp<Work>("sWorkJobDetail", new { contractorId, jobId });
+        }
         public IEnumerable<int> GetWorkOpen(int contractorId)
         {
             return QuerySp<int>("sWorkOpen", new { contractorId });
