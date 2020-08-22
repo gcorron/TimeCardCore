@@ -29,6 +29,7 @@ namespace TimeCardCore.Controllers
             return View(new Models.JobViewModel { ContractorId = ContractorId, Jobs = jobs });
         }
 
+        [HttpPost]
         public void SetJobDate(int contractorId, int jobId, string theDate, bool isNew)
         {
             decimal startDay = 0;
@@ -40,6 +41,12 @@ namespace TimeCardCore.Controllers
                 startDay = days / 14 + (days % 14) * (decimal)0.01;
             }
             _JobRepo.UpdateJobStart(contractorId, jobId, startDay, isNew);
+        }
+
+        [HttpPost]
+        public void SaveDescr(int contractorId, int jobId, string descr)
+        {
+            _JobRepo.SaveJobDescr(contractorId, jobId, descr);
         }
 
         [HttpPost]

@@ -119,5 +119,8 @@
     <Build Include="dbo\Stored Procedures\iJob.sql" />
     <Build Include="dbo\Stored Procedures\dJob.sql" />
     <Build Include="dbo\Stored Procedures\sWorkJobDetail.sql" />
+    <Build Include="dbo\Stored Procedures\uJobDescr.sql" />
+    <Build Include="dbo\Stored Procedures\uAppUserRefreshToken.sql" />
+    <Build Include="dbo\Stored Procedures\sLoginRefresh.sql" />
   </ItemGroup>
 </Project>

@@ -354,7 +354,7 @@ namespace TimeCardCore.Controllers
 
         public void GenerateSummary(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
-            var workSummary = _WorkRepo.GetWorkSummary(contractorId).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle) ;
+            var workSummary = _WorkRepo.GetWorkSummary(contractorId, true).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle) ;
             var file = new FileInfo($"C:\\TEMP\\{name}_Summary.xlsx");
             System.IO.File.Delete(file.FullName);
             using (var templatePackage = new ExcelPackage(templateFile))

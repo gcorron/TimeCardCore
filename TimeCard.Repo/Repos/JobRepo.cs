@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,6 +44,11 @@ namespace TimeCard.Repo.Repos
         public void SaveJob(int clientId, int projectId, int billType)
         {
             ExecuteSp("iJob", new { clientId, projectId, billType });
+        }
+
+        public void SaveJobDescr(int contractorId, int jobId, string descr)
+        {
+            ExecuteSp("uJobDescr", new { contractorId, jobId, descr });
         }
 
         public void DeleteJob(int jobId)

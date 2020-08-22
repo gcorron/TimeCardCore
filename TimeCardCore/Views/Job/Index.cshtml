@@ -35,7 +35,9 @@
                             <td>@job.Client</td>
                             <td>@job.Project</td>
                             <td>@job.BillTypeDescr</td>
-                            <td>@job.Descr</td>
+                            <td>@Html.TextBox(job.Descr,job.Descr,new {@class="form-control edit-job-descr", style="display:none;" })
+                                <a href="#" class="edit-job-descr">@job.Descr</a>
+                            </td>
                             <td>
                                 <span class="span-date">@($"{job.StartDate:MM/dd/yyyy}" )</span>
                                 <input type="date" class="form-control edit-date" placeholder="- None -" style="display:none;" />
@@ -43,9 +45,9 @@
                             <td>
                                 <button type="button" class="btn btn-default fa fa-pencil" title="Adjust Start Date"></button>
                                 <button type="button" class="btn btn-default fa fa-plus" title="Create New Start Date"></button>
+                                <button type="button" class="btn btn-default fa fa-check" title="Save Description" style="display:none;"></button>
                                 <button type="button" class="btn btn-success btn-sm btn-create" style="display:none;">Create New Start Date</button>
                                 <button type="button" class="btn btn-primary btn-sm btn-adjust" style="display:none;">Adjust Start Date</button>
-
                             </td>
                         </tr>
                     }
@@ -73,7 +75,7 @@
                 var btn = isNew ? "btn-create" : "btn-adjust";
                 tr.find("button." + btn).show();
 
-                hideShowEdit(tr, true);
+                hideShowEditDate(tr, true);
                 var span = tr.find('span.span-date')
                 var input = tr.find("input.edit-date");
                 var theDate = span.html();
@@ -82,6 +84,22 @@
                     input.val(theDate);
                 }
             });
+
+            $("button.fa-check").click(function () {
+                var tr = $(this).closest("tr");
+                var descr = tr.find("input.edit-job-descr").val().trim();
+                var jobId = tr.data("edit").JobId;
+                $.ajax({
+                    type: "POST",
+                    url: "Job/SaveDescr",
+                    data: { contractorId: @Model.ContractorId, jobId: jobId, descr:descr },
+                    success: function () {
+                        tr.find("a.edit-job-descr").text(descr);
+                        hideShowEditDate(tr, false);
+                    }
+                });
+            });
+
 
             $("button.btn-create, button.btn-adjust").click(function () {
                 var tr = $(this).closest('tr');
@@ -100,7 +118,7 @@
                     data: { contractorId: @Model.ContractorId, jobId: jobId, theDate: theDate, isNew: isNew },
                     success: function () {
                         span.html(theDate);
-                        hideShowEdit(tr, false);
+                        hideShowEditDate(tr, false);
                     }
                 });
 
@@ -151,26 +169,48 @@
 
             });
 
+            $("a.edit-job-descr").on("click", function () {
+                var tr = $(this).closest("tr");
+                hideShowEditDescr(tr, true);
+            });
+
         if ($("#saveAlertJob div.validation-summary-valid").length == 0) {
             $("#saveAlertJob").show();
         }
     });
 
+
+    function hideShowEditDescr(tr, show) {
+        hideShowEdit(tr, show);
+        tr.find("button.fa-check").show();
+        if (show) {
+            tr.find("a.edit-job-descr").hide();
+            tr.find("input.edit-job-descr").show();
+        }
+    }
+
+    function hideShowEditDate(tr, show) {
+        hideShowEdit(tr, show);
+        tr.find("span.span-date").toggle(!show);
+        tr.find("input.edit-date").toggle(show);
+    }
+
     function hideShowEdit(tr, show) {
         if (show) {
-            tr.siblings(".job-edit-show").each(function () {
+            tr.parent().find("tr.job-edit-show").each(function () {
                 hideShowEdit($(this), false);
             });
             tr.addClass("job-edit-show");
         }
-        tr.find("button.fa-check").toggle(show);
         tr.find("button.fa-pencil").toggle(!show);
         tr.find("button.fa-plus").toggle(!show);
-        tr.find("input.edit-date").toggle(show);
-        tr.find("span.span-date").toggle(!show);
-        tr.find("span.span-descr").toggle(show);
         if (show == false) {
+            tr.find("input.edit-date").hide();
+            tr.find("input.edit-job-descr").hide();
             tr.find("button.btn-sm").hide();
+            tr.find("button.fa-check").hide();
+            tr.find("a.edit-job-descr").show();
+            tr.find("span.span-date").show();
         }
     }
 
