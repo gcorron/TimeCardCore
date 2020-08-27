@@ -122,5 +122,6 @@
     <Build Include="dbo\Stored Procedures\uJobDescr.sql" />
     <Build Include="dbo\Stored Procedures\uAppUserRefreshToken.sql" />
     <Build Include="dbo\Stored Procedures\sLoginRefresh.sql" />
+    <Build Include="dbo\Stored Procedures\uJobStartClosed.sql" />
   </ItemGroup>
 </Project>
