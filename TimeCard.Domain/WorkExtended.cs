@@ -13,6 +13,7 @@ namespace TimeCard.Domain
         public decimal Hours { get; set; }
         public int Cycle { get => (int)Decimal.Floor(WorkDay); }
         public string CycleEndDate { get => $"{DateRef.PeriodEndDate(WorkDay):MM/dd/yy}"; }
+        public string TimeCardDateString { get => $"{DateRef.PeriodEndDate(WorkDay).AddDays(-7):MMdd}_{DateRef.PeriodEndDate(WorkDay):MMdd}"; }
         public DateTime WorkDate { get => DateRef.GetWorkDate((decimal)WorkDay); }
         public int WorkWeek { get => (WorkDay % 1) < (decimal)0.07 ? 0 : 1; }
         public DateTime WorkWeekDate { get => DateRef.GetWorkDate((decimal)(Cycle + 0.07 * WorkWeek + 0.06)); }

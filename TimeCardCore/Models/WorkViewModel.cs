@@ -20,5 +20,6 @@ namespace TimeCardCore.Models
         public Work EditWork { get; set; }
         public bool IsCycleOpen { get; set; }
         public bool CanCloseCycle { get; set; }
+        public bool SortByJob { get; set; }
     }
 }

@@ -117,8 +117,8 @@
                             <table class="table table-sm table-striped table-bordered table-hover">
                                 <thead class="sticky">
                                     <tr>
-                                        <th class="work-col-1">Date</th>
-                                        <th class="work-col-2">Job</th>
+                                        <th class="work-col-1 sort-header">Date</th>
+                                        <th class="work-col-2 sort-header">Job</th>
                                         <th class="work-col-1 text-right">Hours</th>
                                         <th class="work-col-1">Type</th>
                                         <th>Description</th>
@@ -146,6 +146,7 @@
 
             <input asp-for="SelectedContractorId" type="hidden" />
             <input asp-for="SelectedContractorDescr" type="hidden" />
+            <input asp-for="SortByJob" type="hidden" />
         </form>
     </div>
     <div class="tab-pane fade" id="summary">
@@ -161,7 +162,7 @@
                 <select id="ddlJobsDetail" asp-items="Model.Jobs" class="form-control"></select>
             </div>
         </div>
-        <div id ="divDetailJobResults" class="row mt-4">
+        <div id="divDetailJobResults" class="row mt-4">
 
         </div>
     </div>
@@ -178,7 +179,7 @@
                     type: "POST",
                     url: '@Url.Action("WorkDetailJob", "Work")',
                     data: { contractorId: @Model.EditWork.ContractorId, jobId: $(this).val() },
-                    success: function (partialView) { 
+                    success: function (partialView) {
                         $("#divDetailJobResults").html(partialView);
                     }
                 });
@@ -263,6 +264,12 @@
                     $("#summaryJob").html(html);
                 }
             });
+        });
+
+        $('th.sort-header').css("cursor","pointer").on("click", function () {
+            $("#@Html.IdFor(m => m.SortByJob)").val($(this).text() == "Job" ? "True" : "False");
+            $("#formWork").validate().cancelSubmit = true;
+            $("#formWork").submit();
         });
     })
 

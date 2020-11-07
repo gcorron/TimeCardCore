@@ -102,6 +102,10 @@ namespace TimeCardCore.Controllers
             vm.Jobs = _JobRepo.GetJobsForWork(vm.SelectedContractorId, vm.SelectedCycle).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
 
             vm.WorkEntries = _WorkRepo.GetWork(vm.SelectedContractorId, vm.SelectedCycle, true);
+            if (vm.SortByJob)
+            {
+                vm.WorkEntries = vm.WorkEntries.OrderBy(x => x.Job).ThenBy(x => x.WorkDay);
+            }
             if (vm.EditWork == null)
             {
                 vm.EditWork = new TimeCard.Domain.Work { ContractorId = vm.SelectedContractorId, WorkDay = DateRef.GetWorkDay(DateTime.Today) };
@@ -206,9 +210,8 @@ namespace TimeCardCore.Controllers
                 {
                     //create a new time card and populate it
 
-                    string endDate = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.CycleEndDate;
-
-                    var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{endDate.Replace("/", "")}_{name}_{tc.First().Client}_{tc.First().Project.Replace("/","")}.xlsx");
+                    string dateString = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
+                    var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{dateString}_{name.Split(" ").First()}_{tc.First().Project.Replace("/","").Replace(" ","")}.xlsx");
                     System.IO.File.Delete(file.FullName);
                     ExcelWorksheet sheet = null;
                     using (var package = new ExcelPackage(file))
