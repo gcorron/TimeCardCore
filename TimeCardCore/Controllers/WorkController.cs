@@ -164,16 +164,15 @@ namespace TimeCardCore.Controllers
             return PartialView("_WorkDetailJob", detail);
         }
         [HttpPost]
-        public ActionResult GenerateDocs(int contractorId, int cycle)
+        public ActionResult GenerateDocs(int contractorId, int cycle, int weeks)
         {
             var templateFile = new FileInfo($"{WebRootPath}\\Content\\TimeCardTemplates.xlsx");
-
             try
             {
                 string name = LookupRepo.GetLookups("Contractor").Where(x => x.Id == contractorId).FirstOrDefault()?.Descr;
 
                 var fileList = new List<string>();
-                GenerateTimeCards(contractorId, name, templateFile, cycle, fileList);
+                GenerateTimeCards(contractorId, name, templateFile, cycle, fileList, weeks);
                 GenerateTimeBooks(contractorId, name, templateFile, cycle, fileList);
                 GenerateInvoices(contractorId, name, templateFile, cycle, fileList);
                 GenerateSummary(contractorId, name, templateFile, cycle, fileList);
@@ -194,11 +193,17 @@ namespace TimeCardCore.Controllers
 
         }
 
-        private void GenerateTimeCards(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
+        private void GenerateTimeCards(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList, int weeks)
         {
             const int blankRow = 11;
 
-            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, true).Where(x => x.BillType == "TC")
+            var entries = _WorkRepo.GetWorkExtended(contractorId, cycle - (weeks == 4 ? 1 : 0), true);
+            if (weeks == 4)
+            {
+                entries = entries.Union(_WorkRepo.GetWorkExtended(contractorId, cycle, true));
+            }
+            var workEntries = entries            
+                .Where(x => x.BillType == "TC")
                 .GroupBy(g => new { g.ClientId, g.ProjectId });
 
 
@@ -210,7 +215,7 @@ namespace TimeCardCore.Controllers
                 {
                     //create a new time card and populate it
 
-                    string dateString = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
+                    string dateString = weeks == 4 ? new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString4 : new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
                     var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{dateString}_{name.Split(" ").First()}_{tc.First().Project.Replace("/","").Replace(" ","")}.xlsx");
                     System.IO.File.Delete(file.FullName);
                     ExcelWorksheet sheet = null;
@@ -218,8 +223,8 @@ namespace TimeCardCore.Controllers
                     {
                         var workBook = package.Workbook;
                         var first = tc.First();
-                        int[] currentRow = { blankRow + 1, blankRow + 1 };
-                        var tcWeek = tc.GroupBy(w => new { tabName = $"{ w.Project.Replace("/","")} Week {w.WorkWeek + 1}", weekDate = w.WorkWeekDate, week = w.WorkWeek });
+                        int[] currentRow = Enumerable.Repeat(blankRow + 1, weeks).ToArray();
+                        var tcWeek = tc.GroupBy(w => new { tabName = $"{ w.Project.Replace("/","")} Week {w.WorkWeek + weeks - 1 + (w.Cycle-cycle) * 2 }", weekDate = w.WorkWeekDate, week = w.WorkWeek });
                         foreach (var week in tcWeek)
                         {
                             sheet = workBook.Worksheets.Add(week.Key.tabName, templateSheet);
@@ -232,7 +237,7 @@ namespace TimeCardCore.Controllers
                         foreach (var entry in tc)
                         {
                             var w = entry.WorkWeek;
-                            sheet = workBook.Worksheets[$"{ entry.Project.Replace("/","")} Week {entry.WorkWeek + 1}"];
+                            sheet = workBook.Worksheets[$"{ entry.Project.Replace("/","")} Week {entry.WorkWeek + weeks - 1 + (entry.Cycle - cycle) * 2}"];
                             sheet.InsertRow(currentRow[w], 1);
                             sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
 
@@ -266,8 +271,9 @@ namespace TimeCardCore.Controllers
 
         public void GenerateTimeBooks(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
-            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType))
-                .GroupBy(g => new { g.ClientId, g.ProjectId });
+            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType)
+                && (x.Client != "Sessions" || x.WorkDate >= DateTime.Parse("12/17/2020")))
+                .GroupBy(g => new { g.ClientId, ProjectId = g.Client == "Sessions" ? 0 : g.ProjectId });
 
             using (var templatePackage = new ExcelPackage(templateFile))
             {
@@ -282,13 +288,14 @@ namespace TimeCardCore.Controllers
                         var first = tb.First();
                         var workBook = package.Workbook;
                         int currentRow = 2;
-                        ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Client} {first.Project}", templateSheet);
+                        ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Client} {(first.Client == "Sessions" ? "" : first.Project)}", templateSheet);
                         foreach (var entry in tb)
                         {
-                            sheet.Cells[currentRow, 1].Value = $"{entry.WorkDate:MM/dd/yyyy}";
+                            sheet.Cells[currentRow, 1].Value = $"{entry.WorkDate:M/d/yy}";
                             sheet.Cells[currentRow, 2].Value = entry.Hours;
                             sheet.Cells[currentRow, 3].Value = entry.WorkType;
-                            sheet.Cells[currentRow, 4].Value = entry.Descr;
+                            sheet.Cells[currentRow, 4].Value = entry.Project;
+                            sheet.Cells[currentRow, 5].Value = entry.Descr;
                             currentRow++;
                         }
                     }

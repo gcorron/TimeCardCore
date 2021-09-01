@@ -41,7 +41,14 @@
                                 <button name="buttonValue" value="OpenClose" class="cancel btn btn-@(Model.IsCycleOpen ? "secondary" : "success")">@(Model.IsCycleOpen ? "Close" : "Open")</button>
                             </div>
                             <div class="col-md-2 ml-auto text-right">
-                                <button class="btn btn-primary" type="button" id="btnGetCards">Get Time Cards</button>
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="btnGetCards" data-toggle="dropdown">Get Time Cards</button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item get-cards" href="#" data-weeks="2">2 Weeks</a>
+                                        <a class="dropdown-item get-cards" href="#" data-weeks="4">4 Weeks</a>
+                                    </div>
+                                </div>
+                                
                             </div>
                             <div class="col-md-5 alert alert-warning" id="alertHeader" style="display:none;"></div>
                         </div>
@@ -213,13 +220,13 @@
             showEditButtons();
         });
 
-        $("#btnGetCards").click(function () {
-            var $btn = $(this);
+        $("a.get-cards").click(function () {
+            var $btn = $("#btnGetCards");
             buttonBusy($btn);
             $.ajax({
                 type: "POST",
                 url: '@Url.Action("GenerateDocs", "Work")',
-                data: { contractorId: @Model.EditWork.ContractorId, cycle: @Model.SelectedCycle },
+                data: { contractorId: @Model.EditWork.ContractorId, cycle: @Model.SelectedCycle, weeks: $(this).data("weeks") },
                 success: function (result) {
                     console.log(result);
                     buttonUnbusy($btn);
