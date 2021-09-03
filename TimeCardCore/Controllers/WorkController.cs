@@ -193,11 +193,17 @@ namespace TimeCardCore.Controllers
 
         }
 
+        private string GetTimeCardTabName(string project, int week)
+        {
+            return $"{project.Replace("/", "")} Week {week + 1}";
+        }
         private void GenerateTimeCards(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList, int weeks)
         {
             const int blankRow = 11;
-
-            var entries = _WorkRepo.GetWorkExtended(contractorId, cycle - (weeks == 4 ? 1 : 0), true);
+            int firstCycle = cycle - (weeks == 4 ? 1 : 0);
+            var wext = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)firstCycle };
+            var firstDate = wext.WorkWeekDate;
+            var entries = _WorkRepo.GetWorkExtended(contractorId, firstCycle, true);
             if (weeks == 4)
             {
                 entries = entries.Union(_WorkRepo.GetWorkExtended(contractorId, cycle, true));
@@ -224,11 +230,12 @@ namespace TimeCardCore.Controllers
                         var workBook = package.Workbook;
                         var first = tc.First();
                         int[] currentRow = Enumerable.Repeat(blankRow + 1, weeks).ToArray();
-                        var tcWeek = tc.GroupBy(w => new { tabName = $"{ w.Project.Replace("/","")} Week {w.WorkWeek + weeks - 1 + (w.Cycle-cycle) * 2 }", weekDate = w.WorkWeekDate, week = w.WorkWeek });
-                        foreach (var week in tcWeek)
+                        var tcWeek = tc.GroupBy(w => new { tabName = GetTimeCardTabName(w.Project, w.WorkWeek + (w.Cycle - firstCycle) * 2), weekDate = w.WorkWeekDate, week = w.WorkWeek });
+                        
+                        for (int i = 0; i < weeks; i++)
                         {
-                            sheet = workBook.Worksheets.Add(week.Key.tabName, templateSheet);
-                            sheet.Cells[7, 9].Value = week.Key.weekDate;
+                            sheet = workBook.Worksheets.Add(GetTimeCardTabName(first.Project, i), templateSheet);
+                            sheet.Cells[7, 9].Value = firstDate.AddDays(i*7);
                             sheet.Cells[7, 5].Value = first.Client;
                             sheet.Cells[7, 1].Value = first.Contractor;
                             sheet.Cells[14, 5].Value = first.Contractor;
@@ -237,7 +244,7 @@ namespace TimeCardCore.Controllers
                         foreach (var entry in tc)
                         {
                             var w = entry.WorkWeek;
-                            sheet = workBook.Worksheets[$"{ entry.Project.Replace("/","")} Week {entry.WorkWeek + weeks - 1 + (entry.Cycle - cycle) * 2}"];
+                            sheet = workBook.Worksheets[GetTimeCardTabName(entry.Project, entry.WorkWeek + (entry.Cycle - firstCycle) * 2)];
                             sheet.InsertRow(currentRow[w], 1);
                             sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
 
