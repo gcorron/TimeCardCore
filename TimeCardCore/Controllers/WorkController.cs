@@ -195,7 +195,12 @@ namespace TimeCardCore.Controllers
 
         private string GetTimeCardTabName(string project, int week)
         {
-            return $"{project.Replace("/", "")} Week {week + 1}";
+            var proj = project.Replace("/", "");
+            if (proj.Length>24)
+            {
+                proj = proj.Substring(0, 24);
+            }
+            return $"{proj} Week {week + 1}";
         }
         private void GenerateTimeCards(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList, int weeks)
         {
@@ -230,7 +235,7 @@ namespace TimeCardCore.Controllers
                         var workBook = package.Workbook;
                         var first = tc.First();
                         int[] currentRow = Enumerable.Repeat(blankRow + 1, weeks).ToArray();
-                        var tcWeek = tc.GroupBy(w => new { tabName = GetTimeCardTabName(w.Project, w.WorkWeek + (w.Cycle - firstCycle) * 2), weekDate = w.WorkWeekDate, week = w.WorkWeek });
+                        var tcWeek = tc.GroupBy(w => new { tabName = GetTimeCardTabName(w.Project, w.WorkWeek + (w.Cycle - firstCycle) * 2), weekDate = w.WorkWeekDate, week = w.WorkWeek + (w.Cycle - firstCycle) * 2 });
                         
                         for (int i = 0; i < weeks; i++)
                         {
@@ -243,8 +248,8 @@ namespace TimeCardCore.Controllers
                         }
                         foreach (var entry in tc)
                         {
-                            var w = entry.WorkWeek;
-                            sheet = workBook.Worksheets[GetTimeCardTabName(entry.Project, entry.WorkWeek + (entry.Cycle - firstCycle) * 2)];
+                            var w = entry.WorkWeek + (entry.Cycle - firstCycle) * 2;
+                            sheet = workBook.Worksheets[GetTimeCardTabName(entry.Project, w)];
                             sheet.InsertRow(currentRow[w], 1);
                             sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
 
@@ -280,7 +285,7 @@ namespace TimeCardCore.Controllers
         {
             var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType)
                 && (x.Client != "Sessions" || x.WorkDate >= DateTime.Parse("12/17/2020")))
-                .GroupBy(g => new { g.ClientId, ProjectId = g.Client == "Sessions" ? 0 : g.ProjectId });
+                .GroupBy(g => new { g.ClientId, ProjectId = g.Client == "Sessions" && (g.Project.StartsWith("Open") || g.Project.StartsWith("Extra")) ? 0 : g.ProjectId });
 
             using (var templatePackage = new ExcelPackage(templateFile))
             {
@@ -295,14 +300,17 @@ namespace TimeCardCore.Controllers
                         var first = tb.First();
                         var workBook = package.Workbook;
                         int currentRow = 2;
-                        ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Client} {(first.Client == "Sessions" ? "" : first.Project)}", templateSheet);
+                        ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Client} {(first.Client == "Sessions" && (first.Project.StartsWith("Open") || first.Project.StartsWith("Extra")) ? "" : first.Project)}", templateSheet);
                         foreach (var entry in tb)
                         {
                             sheet.Cells[currentRow, 1].Value = $"{entry.WorkDate:M/d/yy}";
                             sheet.Cells[currentRow, 2].Value = entry.Hours;
+                            sheet.Cells[currentRow, 2].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                             sheet.Cells[currentRow, 3].Value = entry.WorkType;
                             sheet.Cells[currentRow, 4].Value = entry.Project;
+                            sheet.Cells[currentRow, 4].Style.WrapText = true;
                             sheet.Cells[currentRow, 5].Value = entry.Descr;
+                            sheet.Cells[currentRow, 5].Style.WrapText = true;
                             currentRow++;
                         }
                     }

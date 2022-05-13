@@ -1,27 +1,25 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:53216",
-      "sslPort": 0
+      "applicationUrl": "http://localhost:50118/",
+      "sslPort": 44315
     }
   },
   "profiles": {
     "IIS Express": {
       "commandName": "IISExpress",
-      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "TimeCardCore": {
       "commandName": "Project",
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:53216",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "applicationUrl": "http://localhost:53216"
     }
   }
 }
