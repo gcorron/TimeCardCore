@@ -1,0 +1,95 @@
+﻿@model TimeCardCore.Models.BudgetViewModel
+<form id="formBudget" asp-controller="Budget" asp-action="Index" method="POST" class="form-horizontal" autocomplete="off">
+    <input asp-for="ActionId" type="hidden" />
+    <input asp-for="Action" type="hidden" />
+    <row>
+        <div class="col-4 offset-8">
+            <input asp-for="Active" class="custom-control-input" />
+        </div>
+    </row>
+    <div class="card mt-3">
+        <div id="divEdit" class="card-body @(Model.EditBudget.BudgetId == 0 ? "bg-success" : "bg-info" )">
+            <div class="form-row">
+                <input asp-for="EditBudget.BudgetId" type="hidden" />
+                <label asp-for="EditBudget.JobId" class="col-form-label col-md-1">Job</label>
+                <div class="col-md-2"><select asp-for="EditBudget.JobId" asp-items="Model.Jobs" class="form-control"></select></div>
+                <label asp-for="EditBudget.BudgetType" class="col-form-label col-md-1">Type</label>
+                <div class="col-md-2"><select asp-for="EditBudget.BudgetType" asp-items="Model.BudgetTypes" class="form-control"></select></div>
+                <label asp-for="EditBudget.BudgetHours" class="col-form-label col-md-1">Budget</label>
+                <div class="col-md-1"><input asp-for="EditBudget.BudgetHours" class="form-control" /></div>
+                <div class="col-md-1 offset-1">
+                    <div class="custom-control form-control custom-checkbox bg-transparent border-0">
+                        <input asp-for="EditBudget.Active" class="custom-control-input" />
+                        <label asp-for="EditBudget.Active" class="custom-control-label">Active</label>
+                    </div>
+                </div>
+                <div id="divEditButtons" class="col-md-2 text-right">
+                    <button class="btn btn-default fa fa-2x fa-check" name="buttonValue" value="Save"></button>
+                    <button class="btn btn-default fa fa-2x fa-plus" type="button" id="btnAdd" style="display:none;"></button>
+                    <button class="btn btn-default fa fa-2x fa-times" name="buttonValue" value="Delete" style="display:none;" onclick="return confirm('Delete are you sure?');"></button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @{ if (Model.Budgets != null)
+        {
+            <div class="row mt-3" style="max-height:450px; overflow-y:auto; position:relative;">
+                <div class="col-md-12">
+                    <table class="table table-sm table-striped table-hover">
+                        <thead class="sticky">
+                            <tr>
+                                <th style="width:25%;">Description</th>
+                                <th style="width:25%;">Budget</th>
+                                <th style="width:25%;">Worked</th>
+                                <th style="width:25%;">Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ foreach (var budget in Model.Budgets)
+                                {
+                                    <tr class="budget-row" data-id="@budget.BudgetId">
+                                        <td>@budget.Descr</td>
+                                        <td>@budget.BudgetHours</td>
+                                        <td>@budget.Worked</td>
+                                        <td>@budget.Paid</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+
+</form>
+@section scripts
+{
+    <script>
+    $(function () {
+        $("#@Html.IdFor(m => m.Active)").change(function () {
+            $("@Html.IdFor(m => m.Action)").val("Active");
+            $("#formLookup").submit();
+        });
+
+        $("tr.budget-row").click(function () {
+            $("@Html.IdFor(m => m.ActionId)").val($(this).data("id"));
+            $("@Html.IdFor(m => m.Action)").val("Edit");
+            $("#formLookup").submit();
+        });
+
+        $("#btnAdd").click(function () {
+            $("@Html.IdFor(m => m.ActionId)").val(0);
+            $("@Html.IdFor(m => m.Action)").val("Edit");
+            $("#formLookup").submit();
+        });
+        showEditButtons();
+    });
+
+     function showEditButtons() {
+        var newWork = $("#@Html.IdFor(m => m.EditBudget.BudgetId)").val() == 0;
+        $("#divEditButtons button[value!='Save']").toggle(!newWork);
+    }
+    </script>
+}

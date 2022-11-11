@@ -23,10 +23,19 @@ namespace TimeCardCore.Controllers
             _JobRepo = new JobRepo(ConnString);
         }
 
+        [HttpGet]
         public ActionResult Index()
         {
-            var jobs = _JobRepo.GetJobStart(ContractorId);
-            return View(new Models.JobViewModel { ContractorId = ContractorId, Jobs = jobs });
+            var vm = new Models.JobViewModel { ContractorId = ContractorId, Active = true};
+            return Index(vm);
+        }
+
+        [HttpPost]
+        public ActionResult Index(JobViewModel vm)
+        {
+            vm.Jobs = _JobRepo.GetJobStart(ContractorId, vm.Active);
+            return View(vm);
+
         }
 
         [HttpPost]

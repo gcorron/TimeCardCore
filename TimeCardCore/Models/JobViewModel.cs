@@ -7,5 +7,7 @@ namespace TimeCardCore.Models
     {
         public int ContractorId { get; set; }
         public IEnumerable<Job> Jobs { get; set; }
+        public bool Active { get; set; }
+        public int ChangeActiveJobId { get; set; }
     }
 }

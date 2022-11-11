@@ -10,37 +10,53 @@
     }
 </style>
 
-<div class="row">
-    <div class="col-2 ml-auto">
-        <button id="btnAddJob" class="btn btn-primary" type="button">Add/Remove</button>
+<form id="formJobs" asp-controller="Job" asp-action="Index" method="POST" class="form-horizontal" autocomplete="off">
+    <div class="row">
+        <div class="col-md-8"></div>
+        <div class="col-md-2">
+            <div class="custom-control form-control custom-checkbox bg-transparent border-0">
+                <input asp-for="Active" class="custom-control-input"  onclick="$('form').submit();"/>
+                <label asp-for="Active" class="custom-control-label font-weight-bold">Active</label>
+            </div>
+        </div>
+        <div class="col-2 text-right">
+            <button id="btnAddJob" class="btn btn-primary" type="button">Add/Remove</button>
+        </div>
     </div>
-</div>
-<div class="row mt-3" style="max-height:75vh; overflow-y:auto; position:relative;">
-    <div class="col-md-12">
-        <table class="table table-sm table-striped table-hover">
-            <thead class="sticky">
-                <tr>
-                    <th class="job-col">Client</th>
-                    <th class="job-col">Project</th>
-                    <th class="job-col">Bill Type</th>
-                    <th class="job-col-2">Description</th>
-                    <th class="job-col">Start Date</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @{ foreach (var job in Model.Jobs)
-                    {
-                        <tr class="work-row" data-edit=@(Json.Serialize(new { job.JobId }))>
-                            <td>@job.Client</td>
-                            <td>@job.Project</td>
-                            <td>@job.BillTypeDescr</td>
-                            <td>@Html.TextBox(job.Descr,job.Descr,new {@class="form-control edit-job-descr", style="display:none;" })
+    @Html.HiddenFor(m => m.ContractorId)
+    @Html.HiddenFor(m => m.ChangeActiveJobId)
+</form>
+    <div class="row mt-3" style="max-height:75vh; overflow-y:auto; position:relative;">
+        <div class="col-md-12">
+            <table class="table table-sm table-striped table-hover">
+                <thead class="sticky">
+                    <tr>
+                        <th class="job-col">Client</th>
+                        <th class="job-col">Project</th>
+                        <th class="job-col">Bill Type</th>
+                        <th class="job-col-2">Description</th>
+                        <th class="job-col">Start Date</th>
+                        <th class="job-col text-center">Active</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ foreach (var job in Model.Jobs)
+                        {
+                            <tr class="work-row" data-edit=@(Json.Serialize(new { job.JobId }))>
+                                <td>@job.Client</td>
+                                <td>@job.Project</td>
+                                <td>@job.BillTypeDescr</td>
+                                <td>
+                                    @Html.TextBox(job.Descr, job.Descr, new { @class = "form-control edit-job-descr", style = "display:none;" })
                                 <a href="#" class="edit-job-descr">@job.Descr</a>
                             </td>
                             <td>
                                 <span class="span-date">@($"{job.StartDate:MM/dd/yyyy}" )</span>
                                 <input type="date" class="form-control edit-date" placeholder="- None -" style="display:none;" />
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" @(job.Active ? "checked" : "") class="job-active" data-id="@job.JobId"/>
                             </td>
                             <td>
                                 <button type="button" class="btn btn-default fa fa-pencil" title="Adjust Start Date"></button>
@@ -51,24 +67,28 @@
                             </td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
-<div id="modalAdd" class="modal fade">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
+    <div id="modalAdd" class="modal fade">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
 
-@Html.HiddenFor(m => m.ContractorId)
+    
+    @section scripts {
 
-@section scripts {
-
-    <script>
-        $(function () {
+        <script>
+            $(function () {
+                $($(".job-active").click(function () {
+                    var id = $(this).prop("id");
+                    $("#ChangeActiveJobId")..val("id");
+                    $("form").submit();
+                });
             $("button.fa-pencil, button.fa-plus").click(function () {
                 var tr = $(this).closest('tr');
                 var isNew = $(this).hasClass('fa-plus');
@@ -226,7 +246,7 @@
             });
     }
 
-    </script>
+        </script>
 
-}
+    }
 

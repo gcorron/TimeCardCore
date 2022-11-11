@@ -25,7 +25,7 @@ namespace TimeCardCore.Controllers
         private readonly PaymentRepo _PaymentRepo;
         private readonly JobRepo _JobRepo;
         private readonly AppUserRepo _AppUserRepo;
-
+        private readonly BudgetRepo _BudgetRepo;
 
         public WorkController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)
         {
@@ -33,8 +33,8 @@ namespace TimeCardCore.Controllers
             _PaymentRepo = new PaymentRepo(ConnString);
             _JobRepo = new JobRepo(ConnString);
             _AppUserRepo = new AppUserRepo(ConnString);
+            _BudgetRepo = new BudgetRepo(ConnString);
         }
-
 
         public IActionResult Index()
         {
@@ -54,6 +54,10 @@ namespace TimeCardCore.Controllers
                     ModelState.Clear();
                     break;
                 case "Save":
+                    if (0 == (vm.WorkTypeBudget ? vm.EditWork.BudgetId : vm.EditWork.JobId))
+                    {
+                            ModelState.AddModelError("EditWork.BudgetId", "Please select a Job.");
+                    }
                     if (ModelState.IsValid)
                     {
                         var work = vm.EditWork;
@@ -71,6 +75,9 @@ namespace TimeCardCore.Controllers
                     vm.EditWork = null;
                     ModelState.Clear();
                     break;
+                case "Refresh":
+                    ModelState.Clear();
+                    break;
                 default:
                     vm.EditWork = null;
                     ModelState.Clear();
@@ -85,7 +92,8 @@ namespace TimeCardCore.Controllers
         {
             var cycles = GetPayCycles();
             int cycle = int.Parse(cycles.First().Value);
-            vm.WorkTypes = LookupRepo.GetLookups("WorkType", "- Select -").Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
+            var workTypes = LookupRepo.GetLookups("WorkType", "- Select -");
+            vm.WorkTypes = workTypes.Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
             vm.PayCycles = cycles;
             vm.IsCycleOpen = false;
             vm.CanCloseCycle = true;
@@ -98,8 +106,6 @@ namespace TimeCardCore.Controllers
                 vm.IsCycleOpen = true;
                 vm.CanCloseCycle = false;
             }
-
-            vm.Jobs = _JobRepo.GetJobsForWork(vm.SelectedContractorId, vm.SelectedCycle).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
 
             vm.WorkEntries = _WorkRepo.GetWork(vm.SelectedContractorId, vm.SelectedCycle, true);
             if (vm.SortByJob)
@@ -130,6 +136,17 @@ namespace TimeCardCore.Controllers
             {
                 vm.IsCycleOpen = _WorkRepo.GetWorkOpen(vm.SelectedContractorId).Any(x => x == vm.SelectedCycle);
             }
+
+            vm.WorkTypeBudget = workTypes.FirstOrDefault(x => x.Val == "BUDG").Id == vm.EditWork.WorkType;
+            if (vm.WorkTypeBudget)
+            {
+                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" }, 1).Union(_BudgetRepo.GetBudgets(true).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
+            }
+            else
+            {
+                vm.Jobs = _JobRepo.GetJobsForWork(vm.SelectedContractorId, vm.SelectedCycle).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
+            }
+
         }
 
         private IEnumerable<SelectListItem> GetEditDays(int thisCycle)

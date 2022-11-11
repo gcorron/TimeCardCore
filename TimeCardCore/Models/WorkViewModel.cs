@@ -10,6 +10,7 @@ namespace TimeCardCore.Models
         public IEnumerable<SelectListItem> Jobs { get; set; }
         public IEnumerable<SelectListItem> WorkTypes { get; set; }
         public IEnumerable<SelectListItem> EditDays { get; set; }
+        public IEnumerable<SelectListItem> Budgets { get; set; }
         public decimal TestWorkDay { get; set; }
         public string TestToday { get; set; }
         public IEnumerable<Work> WorkEntries { get; set; }
@@ -21,5 +22,6 @@ namespace TimeCardCore.Models
         public bool IsCycleOpen { get; set; }
         public bool CanCloseCycle { get; set; }
         public bool SortByJob { get; set; }
+        public bool WorkTypeBudget { get; set; }
     }
 }

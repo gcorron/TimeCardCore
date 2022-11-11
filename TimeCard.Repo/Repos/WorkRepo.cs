@@ -22,7 +22,7 @@ namespace TimeCard.Repo.Repos
 
         public void SaveWork(Work work)
         {
-            ExecuteSp("uWork", new { work.WorkId, work.ContractorId, work.JobId, work.WorkDay, work.Descr, work.Hours, work.WorkType });
+            ExecuteSp("uWork", new { work.WorkId, work.ContractorId, work.JobId, work.WorkDay, work.Descr, work.Hours, work.WorkType, work.BudgetId });
         }
 
         public void DeleteWork(int workId)

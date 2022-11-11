@@ -9,9 +9,9 @@ namespace TimeCard.Domain
         public int WorkId { get; set; }
         [Range(1,int.MaxValue,ErrorMessage = "Contractor ID required")]
         public int ContractorId { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a Job")]
         public int JobId { get; set; }
         public string Job { get; set; }
+        public int BudgetId { get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Work Type")]
         public int WorkType { get; set; }
         public string WorkTypeDescr { get; set; }

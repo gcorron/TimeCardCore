@@ -48,7 +48,7 @@
                                         <a class="dropdown-item get-cards" href="#" data-weeks="4">4 Weeks</a>
                                     </div>
                                 </div>
-                                
+
                             </div>
                             <div class="col-md-5 alert alert-warning" id="alertHeader" style="display:none;"></div>
                         </div>
@@ -85,14 +85,28 @@
                             <div class="col-md-2">
                                 <select asp-for="EditWork.WorkDay" asp-items="Model.EditDays" class="form-control"></select>
                             </div>
-                            <label class="col-form-label col-md-1 text-right">Job</label>
-                            <div class="col-md-3">
-                                <select asp-for="EditWork.JobId" asp-items="Model.Jobs" class="form-control"></select>
-                            </div>
                             <div class="col-md-1 col-form-label text-right">Type</div>
                             <div class="col-md-2">
                                 <select asp-for="EditWork.WorkType" asp-items="Model.WorkTypes" class="form-control"></select>
                             </div>
+                            @if (Model.Jobs != null)
+                            {
+                                <label class="col-form-label col-md-1 text-right">Job</label>
+                                <div class="col-md-3">
+                                    <select asp-for="EditWork.JobId" asp-items="Model.Jobs" class="form-control"></select>
+                                    <input asp-for="EditWork.BudgetId" type="hidden" value="0" />
+                                </div>
+
+                            }
+                            @if (Model.Budgets != null)
+                            {
+                                <label class="col-form-label col-md-1 text-right">Job</label>
+                                <div class="col-md-3">
+                                    <select asp-for="EditWork.BudgetId" asp-items="Model.Budgets" class="form-control"></select>
+                                    <input asp-for="EditWork.JobId" type="hidden" />
+                                </div>
+                            }
+
                             <label class="col-form-label col-md-1">Hours</label>
                             <div class="col-md-1">
                                 <input asp-for="EditWork.Hours" class="form-control" type="number" min="0" , max="8" step="0.25" />
@@ -134,7 +148,7 @@
                                 <tbody>
                                     @{ foreach (var entry in Model.WorkEntries)
                                         {
-                                            <tr class="work-row" data-edit=@(Json.Serialize(new  { entry.WorkId, entry.JobId, entry.WorkDay,entry.WorkType }))>
+                                            <tr class="work-row @(entry.WorkId == Model.EditWork.WorkId ? "bg-info": "" )" data-edit=@(Json.Serialize(new  { entry.WorkId, entry.JobId, entry.WorkDay,entry.WorkType, entry.BudgetId }))>
                                                 <td class="work-col-1">@entry.WorkDate</td>
                                                 <td class="work-col-2">@entry.Job</td>
                                                 <td class="work-col-1 text-right">@entry.Hours</td>
@@ -154,6 +168,7 @@
             <input asp-for="SelectedContractorId" type="hidden" />
             <input asp-for="SelectedContractorDescr" type="hidden" />
             <input asp-for="SortByJob" type="hidden" />
+            <input asp-for="WorkTypeBudget" type="hidden" />
         </form>
     </div>
     <div class="tab-pane fade" id="summary">
@@ -177,10 +192,15 @@
 @section scripts {
     <script>
         $(function () {
+            showEditButtons();
             $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
                 $("#formWork").validate().cancelSubmit = true;
                 $("#formWork").submit();
             });
+            $("#@Html.IdFor(m => m.EditWork.WorkType)").change(function () {
+                refreshEdit();
+            });
+
             $("#ddlJobsDetail").change(function () {
                 $.ajax({
                     type: "POST",
@@ -191,36 +211,34 @@
                     }
                 });
             });
-        $("tr.work-row").click(function () {
-            $(this).addClass("bg-info").siblings().removeClass("bg-info");
-            var data = $(this).data("edit");
-            console.log(data);
-            $("#@Html.IdFor(m => m.EditWork.WorkId)").val(data.WorkId);
-            $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(data.WorkDay.toString());
-            $("#@Html.IdFor(m => m.EditWork.JobId)").val(data.JobId);
-            var cells = $(this).find("td").map(function () { return $(this).text(); });
-            $("#@Html.IdFor(m => m.EditWork.Hours)").val(cells[2]);
-            $("#@Html.IdFor(m => m.EditWork.WorkType)").val(data.WorkType);
-            $("#@Html.IdFor(m => m.EditWork.Descr)").val(cells[4]);
-            $("#divEdit").addClass("bg-info").removeClass("bg-success");
-            $(".input-validation-error").removeClass("input-validation-error");
-            showEditButtons();
-        });
+            $("tr.work-row").click(function () {
+                var data = $(this).data("edit");
+                $("#@Html.IdFor(m => m.EditWork.WorkId)").val(data.WorkId);
+                $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(data.WorkDay.toString());
+                $("#@Html.IdFor(m => m.EditWork.JobId)").val(data.JobId);
+                var cells = $(this).find("td").map(function () { return $(this).text(); });
+                $("#@Html.IdFor(m => m.EditWork.Hours)").val(cells[2]);
+                $("#@Html.IdFor(m => m.EditWork.WorkType)").val(data.WorkType);
+                $("#@Html.IdFor(m => m.EditWork.BudgetId)").val(data.BudgetId);
+                $("#@Html.IdFor(m => m.EditWork.Descr)").val(cells[4]);
+                refreshEdit();
+            });
 
-        $("#btnAdd").click(function () {
-            $("#divEdit").addClass("bg-success").removeClass("bg-info");
-            $("#@Html.IdFor(m => m.EditWork.WorkId)").val(0);
-            var today = getToday();
-            var workDay = $("#@Html.IdFor(m => m.EditWork.WorkDay) option:contains('" + today + "')");
-            if (workDay.length) {
-                $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(workDay.val());
-            }
-            $("#@Html.IdFor(m => m.EditWork.Hours)").val(0);
-            $("#@Html.IdFor(m => m.EditWork.Descr)").val("");
-            showEditButtons();
-        });
+            $("#btnAdd").click(function () {
+                $("#divEdit").addClass("bg-success").removeClass("bg-info");
+                $("#@Html.IdFor(m => m.EditWork.WorkId)").val(0);
+                var today = getToday();
+                var workDay = $("#@Html.IdFor(m => m.EditWork.WorkDay) option:contains('" + today + "')");
+                if (workDay.length) {
+                    $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(workDay.val());
+                }
+                $("#@Html.IdFor(m => m.EditWork.Hours)").val(0);
+                $("#@Html.IdFor(m => m.EditWork.Descr)").val("");
+                showEditButtons();
+            });
 
-        $("a.get-cards").click(function () {
+            $("a.get-cards").click(function () {
+                debugger;
             var $btn = $("#btnGetCards");
             buttonBusy($btn);
             $.ajax({
@@ -245,6 +263,11 @@
             });
         });
 
+        function refreshEdit() {
+            $("<input>").prop("type", "hidden").prop("name", "buttonValue").val("Refresh").appendTo("#formWork");
+            $("#formWork").validate().cancelSubmit = true;
+            $("#formWork").submit();
+        }
         if ($("#saveAlert div.validation-summary-valid").length == 0) {
             $("#saveAlert").show();
         }

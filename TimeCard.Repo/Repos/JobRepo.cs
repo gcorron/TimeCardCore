@@ -14,9 +14,9 @@ namespace TimeCard.Repo.Repos
         {
 
         }
-        public IEnumerable<Job> GetJobStart(int contractorId)
+        public IEnumerable<Job> GetJobStart(int contractorId, bool active = true)
         {
-            return QuerySp<Job>("sJobStart", new { contractorId });
+            return QuerySp<Job>("sJobStart", new { contractorId, active });
         }
 
         public void UpdateJobStart(int contractorId, int jobId, decimal startDay, bool isNew)
@@ -54,6 +54,10 @@ namespace TimeCard.Repo.Repos
         public void DeleteJob(int jobId)
         {
             ExecuteSp("dJob", new { jobId });
+        }
+        public void Active(int jobId, bool active)
+        {
+            ExecuteSp("uJobActive", new { jobId, active });
         }
     }
 }
