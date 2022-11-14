@@ -300,10 +300,9 @@ namespace TimeCardCore.Controllers
 
         public void GenerateTimeBooks(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
-            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType)
-                && (x.Client != "Sessions" || x.WorkDate >= DateTime.Parse("12/17/2020")))
-                .GroupBy(g => new { g.ClientId, ProjectId = g.Client == "Sessions" && (g.Project.StartsWith("Open") || g.Project.StartsWith("Extra")) ? 0 : g.ProjectId });
-
+            var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType))
+                .GroupBy(g => new { g.ClientId, g.ProjectId })
+                .OrderBy(x => x.Key.ClientId);
             using (var templatePackage = new ExcelPackage(templateFile))
             {
                 var templateSheet = templatePackage.Workbook.Worksheets["TimeBook"];

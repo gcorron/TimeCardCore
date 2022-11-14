@@ -1,14 +1,27 @@
 ﻿@model TimeCardCore.Models.PaymentViewModel
+<div class="row">
 
-<ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" href="#summary">Summary</a>
+    <div class="col-md-10">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#summary">Summary</a>
 
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#edit">Edit</a>
-    </li>
-</ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#edit">Edit</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-2">
+        <form id="formPaymentIndex">
+            @Html.HiddenFor(m => m.SelectedContractorId)
+            <div class="custom-control form-control custom-checkbox bg-transparent border-0">
+                <input asp-for="AllHours" class="custom-control-input" onclick='submitPaymentForm("Summary",$("#summary"),"#formPaymentIndex");' />
+                <label asp-for="AllHours" class="custom-control-label font-weight-bold">Thru Current</label>
+            </div>
+        </form>
+    </div>
+</div>
 <div class="tab-content">
     <div class="tab-pane active fade show" id="summary">
         <partial name="_PaymentSummary" />
@@ -86,23 +99,23 @@
         submitPaymentForm(null,"#edit");
      }
 
-        function submitPaymentForm(buttonValue, div) {
-            $.ajax({
-                type: "POST",
-                url: "/Payment/Index",
-                data: $("#formPayment").serialize() + (buttonValue ? "&buttonValue=" + buttonValue : ""),
-                success: function (html) {
-                    $(div).html(html);
-                    $('a[href="' + div + '"]').tab("show");
-                    if (div == "edit") {
-                        showEditButtons();
-                    }
-                },
-                error: function () {
-                    console.log("/Payment/Index threw an error");
+    function submitPaymentForm(buttonValue, div, formName) {
+        $.ajax({
+            type: "POST",
+            url: "/Payment/Index",
+            data: $(formName || "#formPayment").serialize() + (buttonValue ? "&buttonValue=" + buttonValue : ""),
+            success: function (html) {
+                $(div).html(html);
+                $('a[href="' + div + '"]').tab("show");
+                if (div == "edit") {
+                    showEditButtons();
                 }
-            });
-        }
+            },
+            error: function () {
+                console.log("/Payment/Index threw an error");
+            }
+        });
+    }
 
     function showEditButtons() {
         var newWork = $("#@Html.IdFor(m => m.EditPayment.PayId)").val() == 0;

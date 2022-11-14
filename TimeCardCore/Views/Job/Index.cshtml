@@ -84,9 +84,9 @@
 
         <script>
             $(function () {
-                $($(".job-active").click(function () {
-                    var id = $(this).prop("id");
-                    $("#ChangeActiveJobId")..val("id");
+                $(".job-active").click(function () {
+                    var id = $(this).data("id");
+                    $("#ChangeActiveJobId").val(id);
                     $("form").submit();
                 });
             $("button.fa-pencil, button.fa-plus").click(function () {

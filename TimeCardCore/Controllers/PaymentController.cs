@@ -76,7 +76,7 @@ namespace TimeCardCore.Controllers
                     ModelState.Clear();
                     break;
                 case "Summary":
-                    vm.PaymentSummary = _PaymentRepo.GetSummary(vm.SelectedContractorId, DateRef.CurrentWorkCycle);
+                    vm.PaymentSummary = _PaymentRepo.GetSummary(vm.SelectedContractorId, vm.AllHours ? 0 : DateRef.CurrentWorkCycle);
                     vm.Payments = _PaymentRepo.GetPayments(vm.SelectedContractorId);
                     prepPayment(vm);
                     return PartialView("_PaymentSummary", vm);

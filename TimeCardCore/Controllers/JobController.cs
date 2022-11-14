@@ -33,9 +33,14 @@ namespace TimeCardCore.Controllers
         [HttpPost]
         public ActionResult Index(JobViewModel vm)
         {
+            if (vm.ChangeActiveJobId != 0)
+            {
+                _JobRepo.Active(vm.ChangeActiveJobId, !vm.Active);
+                vm.ChangeActiveJobId = 0;
+                ModelState.Clear();
+            }
             vm.Jobs = _JobRepo.GetJobStart(ContractorId, vm.Active);
             return View(vm);
-
         }
 
         [HttpPost]
