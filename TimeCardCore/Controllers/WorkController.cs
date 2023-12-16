@@ -56,7 +56,7 @@ namespace TimeCardCore.Controllers
                 case "Save":
                     if (0 == (vm.WorkTypeBudget ? vm.EditWork.BudgetId : vm.EditWork.JobId))
                     {
-                            ModelState.AddModelError("EditWork.BudgetId", "Please select a Job.");
+                        ModelState.AddModelError("EditWork.BudgetId", "Please select a Job.");
                     }
                     if (ModelState.IsValid)
                     {
@@ -212,16 +212,22 @@ namespace TimeCardCore.Controllers
 
         private string GetTimeCardTabName(string project, int week)
         {
+            if (project == "2G")
+            {
+                return $"2g_wk{week + 1}";
+            }
+
             var proj = project.Replace("/", "");
-            if (proj.Length>24)
+            if (proj.Length > 24)
             {
                 proj = proj.Substring(0, 24);
             }
+
             return $"{proj} Week {week + 1}";
         }
         private void GenerateTimeCards(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList, int weeks)
         {
-            const int blankRow = 11;
+            var templateFile2G = new FileInfo($"{WebRootPath}\\Content\\2GTemplate.xlsx");
             int firstCycle = cycle - (weeks == 4 ? 1 : 0);
             var wext = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)firstCycle };
             var firstDate = wext.WorkWeekDate;
@@ -230,68 +236,112 @@ namespace TimeCardCore.Controllers
             {
                 entries = entries.Union(_WorkRepo.GetWorkExtended(contractorId, cycle, true));
             }
-            var workEntries = entries            
+            var workEntries = entries
                 .Where(x => x.BillType == "TC")
                 .GroupBy(g => new { g.ClientId, g.ProjectId });
 
-
             using (var templatePackage = new ExcelPackage(templateFile))
             {
-                var templateSheet = templatePackage.Workbook.Worksheets["TimeCard"];
-
-                foreach (var tc in workEntries)
+                using (var template2G = new ExcelPackage(templateFile2G))
                 {
-                    //create a new time card and populate it
-
-                    string dateString = weeks == 4 ? new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString4 : new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
-                    var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{dateString}_{name.Split(" ").First()}_{tc.First().Project.Replace("/","").Replace(" ","")}.xlsx");
-                    System.IO.File.Delete(file.FullName);
-                    ExcelWorksheet sheet = null;
-                    using (var package = new ExcelPackage(file))
+                    foreach (var tc in workEntries)
                     {
-                        var workBook = package.Workbook;
-                        var first = tc.First();
-                        int[] currentRow = Enumerable.Repeat(blankRow + 1, weeks).ToArray();
-                        var tcWeek = tc.GroupBy(w => new { tabName = GetTimeCardTabName(w.Project, w.WorkWeek + (w.Cycle - firstCycle) * 2), weekDate = w.WorkWeekDate, week = w.WorkWeek + (w.Cycle - firstCycle) * 2 });
-                        
-                        for (int i = 0; i < weeks; i++)
+                        bool is2G = tc.First().Client == "2nd Gear";
+                        int blankRow = is2G ? 12 : 11;
+                        //create a new time card and populate it
+                        string dateString = weeks == 4 ? new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString4 : new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
+                        var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{dateString}_{name.Split(" ").First()}_{tc.First().Project.Replace("/", "").Replace(" ", "")}.xlsx");
+                        System.IO.File.Delete(file.FullName);
+                        ExcelWorksheet sheet = null;
+                        using (var package = is2G ? new ExcelPackage(file, templateFile2G) : new ExcelPackage(file))
                         {
-                            sheet = workBook.Worksheets.Add(GetTimeCardTabName(first.Project, i), templateSheet);
-                            sheet.Cells[7, 9].Value = firstDate.AddDays(i*7);
-                            sheet.Cells[7, 5].Value = first.Client;
-                            sheet.Cells[7, 1].Value = first.Contractor;
-                            sheet.Cells[14, 5].Value = first.Contractor;
-                            sheet.Cells[14, 10].Value = DateTime.Today;
-                        }
-                        foreach (var entry in tc)
-                        {
-                            var w = entry.WorkWeek + (entry.Cycle - firstCycle) * 2;
-                            sheet = workBook.Worksheets[GetTimeCardTabName(entry.Project, w)];
-                            sheet.InsertRow(currentRow[w], 1);
-                            sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
-
-                            sheet.Cells[currentRow[w], 3].Value = entry.WorkType;
-                            sheet.Cells[currentRow[w], 2].Value = entry.Descr;
-                            sheet.Cells[currentRow[w], 4].Value = entry.Project;
-                            sheet.Cells[currentRow[w], 5 + entry.WorkWeekDay].Value = entry.Hours;
-                            sheet.Cells[currentRow[w], 13].Formula = $"= SUM(E{ currentRow[w]}:K{ currentRow[w]})";
-                            currentRow[w]++;
-                        }
-                        foreach (var week in tcWeek)
-                        {
-                            var w = week.Key.week;
-                            sheet = workBook.Worksheets[week.Key.tabName];
-                            for (int i = 0; i < 9; i++)
+                            var workBook = package.Workbook;
+                            var first = tc.First();
+                            int[] currentRow = Enumerable.Repeat(blankRow, weeks).ToArray();
+                            var tcWeek = tc.GroupBy(w => new { tabName = GetTimeCardTabName(is2G ? "2G" : w.Project, w.WorkWeek + (w.Cycle - firstCycle) * 2), weekDate = w.WorkWeekDate, week = w.WorkWeek + (w.Cycle - firstCycle) * 2 });
+                            ExcelWorksheet templateSheet;
+                            for (int i = 0; i < weeks; i++)
                             {
-                                var column = "EFGHIJKLM".Substring(i, 1);
-                                sheet.Cells[currentRow[w], i + 5].Formula = $"= SUM({column}{ blankRow}:{column}{ currentRow[w] - 1})";
+                                string tabName = GetTimeCardTabName(is2G ? "2G" : first.Project, i);
+                                if (is2G)
+                                {
+                                    sheet = package.Workbook.Worksheets[i];
+                                    sheet.Cells[7, 10].Value = firstDate.AddDays(i * 7);
+                                    sheet.Cells[7, 1].Value = first.Contractor;
+                                    sheet.Cells[14, 6].Value = first.Contractor;
+                                    sheet.Cells[14, 11].Value = DateTime.Today;
+                                }
+                                else
+                                {
+                                    templateSheet = templatePackage.Workbook.Worksheets["TimeCard"];
+                                    sheet = workBook.Worksheets.Add(tabName, templateSheet);
+                                    sheet.Cells[7, 9].Value = firstDate.AddDays(i * 7);
+                                    sheet.Cells[7, 5].Value = first.Client;
+                                    sheet.Cells[7, 1].Value = first.Contractor;
+                                    sheet.Cells[14, 5].Value = first.Contractor;
+                                    sheet.Cells[14, 10].Value = DateTime.Today;
+                                }
+
+
+                            }
+
+                            foreach (var entry in tc)
+                            {
+                                var w = entry.WorkWeek + (entry.Cycle - firstCycle) * 2;
+                                sheet = workBook.Worksheets[GetTimeCardTabName(is2G ? "2G" : entry.Project, w)];
+
+                                if (is2G)
+                                {
+                                    sheet.InsertRow(currentRow[w], 1);
+                                    sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
+                                    sheet.Row(currentRow[w]).StyleName = "Normal 2 2";
+                                }
+                                else
+                                {
+                                    sheet.InsertRow(currentRow[w], 1);
+                                    sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
+                                }
+                                if (is2G)
+                                {
+                                    sheet.Cells[currentRow[w], 1].Value = entry.WorkType == "REG" ? "CATAPULT" : "SUPPORT";
+                                    sheet.Cells[currentRow[w], 2].Value = entry.Descr;
+                                    var pattern = @"\bCTS-\w*\b";
+                                    sheet.Cells[currentRow[w], 3].Value = System.Text.RegularExpressions.Regex.Match(entry.Descr, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase).Value;
+                                    sheet.Cells[currentRow[w], 4].Value = entry.WorkType == "REG" ? "CAPEX" : "OPEX";
+                                    sheet.Cells[currentRow[w], 6 + entry.WorkWeekDay].Value = entry.Hours;
+                                    sheet.Cells[currentRow[w], 14].Formula = $"= SUM(E{ currentRow[w]}:K{ currentRow[w]})";
+                                }
+                                else
+                                {
+                                    sheet.Cells[currentRow[w], 3].Value = entry.WorkType;
+                                    sheet.Cells[currentRow[w], 2].Value = entry.Descr;
+                                    sheet.Cells[currentRow[w], 4].Value = entry.Project;
+                                    sheet.Cells[currentRow[w], 5 + entry.WorkWeekDay].Value = entry.Hours;
+                                    sheet.Cells[currentRow[w], 13].Formula = $"= SUM(E{ currentRow[w]}:K{ currentRow[w]})";
+                                }
+                                currentRow[w]++;
+                            }
+                            foreach (var week in tcWeek)
+                            {
+                                var w = week.Key.week;
+                                sheet = workBook.Worksheets[week.Key.tabName];
+                                var j = is2G ? 1 : 0;
+                                var k = is2G ? 2 : 0;
+                                for (int i = j; i < 9 + j; i++)
+                                {
+                                    var column = "EFGHIJKLMN".Substring(i, 1);
+                                    sheet.Cells[currentRow[w] + k, i + 5].Formula = $"= SUM({column}{ blankRow}:{column}{ currentRow[w] - 1})";
+                                }
+                                sheet.DeleteRow(currentRow[w]+1);
+                                sheet.DeleteRow(currentRow[w]);
                             }
                             sheet.Calculate();
-                        }
-                        if (package.Workbook.Worksheets.Any())
-                        {
-                            package.Save();
-                            fileList.Add(package.File.FullName);
+                            if (package.Workbook.Worksheets.Any())
+                            {
+                                package.Workbook.Calculate();
+                                package.Save();
+                                fileList.Add(package.File.FullName);
+                            }
                         }
                     }
                 }
@@ -301,7 +351,7 @@ namespace TimeCardCore.Controllers
         public void GenerateTimeBooks(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
             var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType))
-                .GroupBy(g => new { g.ClientId, g.ProjectId })
+                .GroupBy(g => new { g.JobId, g.ClientId, g.ProjectId })
                 .OrderBy(x => x.Key.ClientId);
             using (var templatePackage = new ExcelPackage(templateFile))
             {
@@ -316,7 +366,8 @@ namespace TimeCardCore.Controllers
                         var first = tb.First();
                         var workBook = package.Workbook;
                         int currentRow = 2;
-                        ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Client} {(first.Client == "Sessions" && (first.Project.StartsWith("Open") || first.Project.StartsWith("Extra")) ? "" : first.Project)}", templateSheet);
+                        ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Job}", templateSheet);
+                        //ExcelWorksheet sheet = workBook.Worksheets.Add($"{first.Client} {(first.Client == "Sessions" && (first.Project.StartsWith("Open") || first.Project.StartsWith("Extra")) ? "" : first.Project)}", templateSheet);
                         foreach (var entry in tb)
                         {
                             sheet.Cells[currentRow, 1].Value = $"{entry.WorkDate:M/d/yy}";
@@ -327,6 +378,7 @@ namespace TimeCardCore.Controllers
                             sheet.Cells[currentRow, 4].Style.WrapText = true;
                             sheet.Cells[currentRow, 5].Value = entry.Descr;
                             sheet.Cells[currentRow, 5].Style.WrapText = true;
+                            sheet.Row(currentRow).Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Top;
                             currentRow++;
                         }
                     }
@@ -395,7 +447,7 @@ namespace TimeCardCore.Controllers
 
         public void GenerateSummary(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
-            var workSummary = _WorkRepo.GetWorkSummary(contractorId, true).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle) ;
+            var workSummary = _WorkRepo.GetWorkSummary(contractorId, true).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle);
             var file = new FileInfo($"C:\\TEMP\\{name}_Summary.xlsx");
             System.IO.File.Delete(file.FullName);
             using (var templatePackage = new ExcelPackage(templateFile))
@@ -486,7 +538,7 @@ namespace TimeCardCore.Controllers
         [HttpGet]
         public void DownloadTimeDocs()
         {
-            var download = JsonConvert.DeserializeObject(TempData["Download"].ToString(),typeof(Infrastructure.ZipDownload)) as Infrastructure.ZipDownload;
+            var download = JsonConvert.DeserializeObject(TempData["Download"].ToString(), typeof(Infrastructure.ZipDownload)) as Infrastructure.ZipDownload;
 
             var response = this.HttpContext.Response;
             response.ContentType = "application/zip";
