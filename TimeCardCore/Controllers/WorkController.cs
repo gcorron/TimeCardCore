@@ -14,7 +14,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using TimeCardCore.Infrastructure;
-using System.Diagnostics.Contracts;
+using System.Text.RegularExpressions;
 
 namespace TimeCardCore.Controllers
 {
@@ -284,7 +284,7 @@ namespace TimeCardCore.Controllers
 
 
                             }
-
+                            var pattern = @"\bCTS-\w*\b";
                             foreach (var entry in tc)
                             {
                                 var w = entry.WorkWeek + (entry.Cycle - firstCycle) * 2;
@@ -293,7 +293,8 @@ namespace TimeCardCore.Controllers
                                 if (is2G)
                                 {
                                     sheet.InsertRow(currentRow[w], 1);
-                                    sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
+                                    //sheet.Cells[blankRow, 1, blankRow, 20].Clear();
+                                    //sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow[w], 1]);
                                     sheet.Row(currentRow[w]).StyleName = "Normal 2 2";
                                 }
                                 else
@@ -304,12 +305,12 @@ namespace TimeCardCore.Controllers
                                 if (is2G)
                                 {
                                     sheet.Cells[currentRow[w], 1].Value = entry.WorkType == "REG" ? "CATAPULT" : "SUPPORT";
-                                    sheet.Cells[currentRow[w], 2].Value = entry.Descr;
-                                    var pattern = @"\bCTS-\w*\b";
-                                    sheet.Cells[currentRow[w], 3].Value = System.Text.RegularExpressions.Regex.Match(entry.Descr, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase).Value;
+
+                                    sheet.Cells[currentRow[w], 2].Value = Regex.Replace(entry.Descr,pattern,"", RegexOptions.IgnoreCase).Trim();
+                                    sheet.Cells[currentRow[w], 3].Value = Regex.Match(entry.Descr, pattern, RegexOptions.IgnoreCase).Value;
                                     sheet.Cells[currentRow[w], 4].Value = entry.WorkType == "REG" ? "CAPEX" : "OPEX";
                                     sheet.Cells[currentRow[w], 6 + entry.WorkWeekDay].Value = entry.Hours;
-                                    sheet.Cells[currentRow[w], 14].Formula = $"= SUM(E{ currentRow[w]}:K{ currentRow[w]})";
+                                    sheet.Cells[currentRow[w], 14].Formula = $"= SUM(F{ currentRow[w]}:L{ currentRow[w]})";
                                 }
                                 else
                                 {
