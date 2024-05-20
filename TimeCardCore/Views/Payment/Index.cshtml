@@ -15,10 +15,7 @@
     <div class="col-md-2">
         <form id="formPaymentIndex">
             @Html.HiddenFor(m => m.SelectedContractorId)
-            <div class="custom-control form-control custom-checkbox bg-transparent border-0">
-                <input asp-for="AllHours" class="custom-control-input" onclick='submitPaymentForm("Summary",$("#summary"),"#formPaymentIndex");' />
-                <label asp-for="AllHours" class="custom-control-label font-weight-bold">Thru Current</label>
-            </div>
+            <input asp-for="CutoffDate" class="form-control" type="date"/>
         </form>
     </div>
 </div>
@@ -32,9 +29,12 @@
 </div>
 @section scripts {
     <script>
-    $(function () {
+        $(function () {
         $('a[href="#summary"]').on("show.bs.tab", function (e) {
             submitPaymentForm("Summary",'#summary')
+        });
+        $('input[name$=CutoffDate]').on("change", function (e) {
+            submitPaymentForm("Summary",'#summary', '#formPaymentIndex')
         });
 
         $("#summary").on("click", ".summary-row", function (e) {

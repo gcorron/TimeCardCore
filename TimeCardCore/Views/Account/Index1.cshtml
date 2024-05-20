@@ -1,0 +1,19 @@
+﻿@model BudgetViewModel
+
+@{
+    ViewBag.Title = "Dictionary";
+}
+
+@foreach(var i in Model.Jobs)
+{
+    <div>
+        @i
+    </div>
+    
+}
+<h3>Manage Dictionary</h3>
+<div id="LookupAdmin">
+    @Html.Partial("_LookupAdminEdit", Model)
+</div>
+<div id="LookupResults">
+</div>

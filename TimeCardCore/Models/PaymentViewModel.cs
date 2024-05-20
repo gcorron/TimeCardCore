@@ -20,6 +20,7 @@ namespace TimeCardCore.Models
         public IEnumerable<Payment>Payments { get; set; }
         public IEnumerable<SelectListItem> TimeCardsUnpaid { get; set; }
         public bool AllHours { get; set; }
+        public DateTime? CutoffDate { get; set; }
         public string WorkDate(decimal workDay)
         {
             if (workDay == 0 )

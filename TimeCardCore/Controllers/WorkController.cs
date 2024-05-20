@@ -246,7 +246,7 @@ namespace TimeCardCore.Controllers
                 {
                     foreach (var tc in workEntries)
                     {
-                        bool is2G = tc.First().Client == "2nd Gear";
+                        bool is2G = true; // tc.First().Client == "2nd Gear";
                         int blankRow = is2G ? 12 : 11;
                         //create a new time card and populate it
                         string dateString = weeks == 4 ? new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString4 : new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
@@ -304,11 +304,24 @@ namespace TimeCardCore.Controllers
                                 }
                                 if (is2G)
                                 {
-                                    sheet.Cells[currentRow[w], 1].Value = entry.WorkType == "REG" ? "CATAPULT" : "SUPPORT";
+                                    
 
                                     sheet.Cells[currentRow[w], 2].Value = Regex.Replace(entry.Descr,pattern,"", RegexOptions.IgnoreCase).Trim();
                                     sheet.Cells[currentRow[w], 3].Value = Regex.Match(entry.Descr, pattern, RegexOptions.IgnoreCase).Value;
-                                    sheet.Cells[currentRow[w], 4].Value = entry.WorkType == "REG" ? "CAPEX" : "OPEX";
+                                    string worktype = "";
+                                    switch (entry.WorkType)
+                                    {
+                                        case "REG":
+                                            worktype = "CAPEX";
+                                            break;
+                                        case "SUPP":
+                                            worktype = "OPEX";
+                                            break;
+                                        case "DISC":
+                                            worktype = "OH";
+                                           break;
+                                    }
+                                    sheet.Cells[currentRow[w], 4].Value = worktype;
                                     sheet.Cells[currentRow[w], 6 + entry.WorkWeekDay].Value = entry.Hours;
                                     sheet.Cells[currentRow[w], 14].Formula = $"= SUM(F{ currentRow[w]}:L{ currentRow[w]})";
                                 }
