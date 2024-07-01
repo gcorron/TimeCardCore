@@ -10,7 +10,7 @@ using TimeCard.Domain;
 
 namespace TimeCard.Repo.Repos
 {
-    public class LookupRepo : BaseRepo
+    public class LookupRepo : BaseRepo, IRepo
     {
         public LookupRepo(string connectionString) : base(connectionString)
         {

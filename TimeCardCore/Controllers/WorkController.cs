@@ -227,7 +227,7 @@ namespace TimeCardCore.Controllers
         }
         private void GenerateTimeCards(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList, int weeks)
         {
-            var templateFile2G = new FileInfo($"{WebRootPath}\\Content\\2GTemplate.xlsx");
+            var templateFile2G = new FileInfo($"{WebRootPath}\\Content\\FWSITemplate.xlsx");
             int firstCycle = cycle - (weeks == 4 ? 1 : 0);
             var wext = new TimeCard.Domain.WorkExtended { WorkDay = (decimal)firstCycle };
             var firstDate = wext.WorkWeekDate;
@@ -268,7 +268,9 @@ namespace TimeCardCore.Controllers
                                     sheet = package.Workbook.Worksheets[i];
                                     sheet.Cells[7, 10].Value = firstDate.AddDays(i * 7);
                                     sheet.Cells[7, 1].Value = first.Contractor;
+                                    sheet.Cells[7, 6].Value = first.Client;
                                     sheet.Cells[14, 6].Value = first.Contractor;
+
                                     sheet.Cells[14, 11].Value = DateTime.Today;
                                 }
                                 else
@@ -321,7 +323,8 @@ namespace TimeCardCore.Controllers
                                             worktype = "OH";
                                            break;
                                     }
-                                    sheet.Cells[currentRow[w], 4].Value = worktype;
+                                    sheet.Cells[currentRow[w], 4].Value = entry.WorkType;
+                                    sheet.Cells[currentRow[w], 5].Value = entry.Project;
                                     sheet.Cells[currentRow[w], 6 + entry.WorkWeekDay].Value = entry.Hours;
                                     sheet.Cells[currentRow[w], 14].Formula = $"= SUM(F{ currentRow[w]}:L{ currentRow[w]})";
                                 }

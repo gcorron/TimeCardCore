@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 
 using Dapper;
+using TimeCard.Repo.Repos;
 
 namespace TimeCard.Repo
 {

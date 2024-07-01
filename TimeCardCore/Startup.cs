@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
+using TimeCard.Repo.Repos;
 using TimeCardCore.Controllers;
 using TimeCardCore.Infrastructure;
 
@@ -51,6 +53,8 @@ namespace TimeCardCore
                 options.AllowSynchronousIO = true;
             });
             services.AddDataProtection().PersistKeysToFileSystem(new System.IO.DirectoryInfo(@"c:\TEMP\"));
+            var ConnString = Configuration.GetConnectionString("TimeCard");
+            services.AddScoped<TimeCard.Repo.Repos.IRepo>(c => new LookupRepo(ConnString));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -88,7 +92,6 @@ namespace TimeCardCore
                     name: "default",
                     pattern: "{controller=Work}/{action=Index}/{id?}");
             });
-
         }
     }
 }
