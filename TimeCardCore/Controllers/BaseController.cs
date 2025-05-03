@@ -26,7 +26,7 @@ namespace TimeCardCore.Controllers
 
         public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base()
         {
-            ConnString = config.GetConnectionString("TimeCard");
+            ConnString = config.GetConnectionString("Timecard");
             LookupRepo = new LookupRepo(ConnString);
             _webHostEnvironment = webHostEnvironment;
             var user = httpContextAccessor.HttpContext.User;

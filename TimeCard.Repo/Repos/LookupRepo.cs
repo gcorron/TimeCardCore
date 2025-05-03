@@ -16,7 +16,10 @@ namespace TimeCard.Repo.Repos
         {
 
         }
-
+        public Lookup GetLookup(int id)
+        {
+            return QuerySingleSp<Lookup>("sLookup", new { id });
+        }
         public Lookup GetLookupByDescr(string group, string descr)
         {
             return QuerySingleSp<Lookup>("sLookup", new { group, descr });

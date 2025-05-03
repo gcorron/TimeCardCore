@@ -13,11 +13,14 @@ namespace TimeCardCore.Models
         public bool JobIsTimeCard { get; set; }
         public int SelectedContractorId { get; set; }
         public int SelectedJobId { get; set; }
+        public int SelectedBudgetId { get; set; }
+        public string SelectedBudget { get; set; }
         public Job SelectedJob { get; set; }
         public bool CanEdit { get => !(SelectedJobId == 0 || SelectedContractorId == 0); }
         public bool IsAdmin { get; set; }
         public Payment EditPayment { get; set; }
         public IEnumerable<Payment>Payments { get; set; }
+        public IEnumerable<SelectListItem> Budgets { get; set; }
         public IEnumerable<SelectListItem> TimeCardsUnpaid { get; set; }
         public bool AllHours { get; set; }
         public DateTime? CutoffDate { get; set; }

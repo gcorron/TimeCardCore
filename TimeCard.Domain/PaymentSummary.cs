@@ -10,9 +10,11 @@ namespace TimeCard.Domain
     public class PaymentSummary
     {
         public int JobId { get; set; }
+        public int BudgetId { get; set; }
         public string Client { get; set; }
         public string Project { get; set; }
         public string BillType { get; set; }
+        public string BudgetName { get; set; }
         public decimal Billed { get; set; }
         public decimal Paid { get; set; }
         public decimal Balance { get => Billed - Paid; }

@@ -12,6 +12,7 @@ namespace TimeCard.Domain
         public int JobId { get; set; }
         public string Job { get; set; }
         public int BudgetId { get; set; }
+        public string BudgetDescr { get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "Please select a Work Type")]
         public int WorkType { get; set; }
         public string WorkTypeDescr { get; set; }

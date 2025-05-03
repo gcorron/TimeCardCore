@@ -6,6 +6,7 @@
                 <tr>
                     <th style="width:15%;">Client</th>
                     <th style="width:15%;">Project</th>
+                    <th style="width:15%;">Budget</th>
                     <th style="width:7%;">Bill Type</th>
                     <th style="width:7%;">Billed</th>
                     <th style="width:7%;">Paid</th>
@@ -18,9 +19,10 @@
             <tbody>
                 @{ foreach (var summary in Model.PaymentSummary)
                     {
-                <tr class="summary-row" data-edit=@(Json.Serialize(new { summary.JobId })) style="cursor:pointer;">
+                <tr class="summary-row" data-edit=@(Json.Serialize(new { summary.JobId, summary.BudgetId })) style="cursor:pointer;">
                     <td>@summary.Client</td>
                     <td>@summary.Project</td>
+                    <td>@summary.BudgetName</td>
                     <td>@summary.BillType</td>
                     <td>@summary.Billed</td>
                     <td>@summary.Paid</td>
@@ -29,7 +31,7 @@
                     <td>@summary.PaidThruDate</td>
                     <td>
                         @{
-                            var payments = Model.Payments.Where(x => x.JobId == summary.JobId);
+                            var payments = Model.Payments.Where(x => x.JobId == summary.JobId && x.BudgetId == summary.BudgetId );
                             if (payments.Any())
                             {
                                 <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#payments@(summary.JobId)">( @payments.Count() )</button>

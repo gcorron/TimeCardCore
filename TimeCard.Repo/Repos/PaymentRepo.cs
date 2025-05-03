@@ -19,9 +19,9 @@ namespace TimeCard.Repo.Repos
                 return QuerySp<PaymentSummary>("sPaymentSummary", new { contractorId, beforeCycle });
         }
 
-        public IEnumerable<Payment> GetPaymentsForJob(int contractorId, int jobId)
+        public IEnumerable<Payment> GetPaymentsForJob(int contractorId, int jobId, int budgetId )
         {
-            return QuerySp<Payment>("sPaymentsJob", new { contractorId, jobId });
+            return QuerySp<Payment>("sPaymentsJob", new { contractorId, jobId, budgetId });
         }
 
         public IEnumerable<Payment> GetPayments(int contractorId)
@@ -31,7 +31,7 @@ namespace TimeCard.Repo.Repos
 
         public void SavePayment(Payment payment)
         {
-            ExecuteSp("uPayment", new { payment.PayId, payment.ContractorId, payment.JobId, payment.Hours, payment.PayDate, payment.CheckNo, payment.WorkDay }) ;
+            ExecuteSp("uPayment", new { payment.PayId, payment.ContractorId, payment.JobId, payment.BudgetId, payment.Hours, payment.PayDate, payment.CheckNo, payment.WorkDay }) ;
         }
 
         public void DeletePayment(int payId)

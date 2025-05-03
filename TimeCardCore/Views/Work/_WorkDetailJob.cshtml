@@ -1,4 +1,7 @@
 ﻿@model IEnumerable<TimeCard.Domain.Work>
+@{
+    var budgets = Enumerable.Repeat(new SelectListItem { Value = "0", Text = "- Select -" }, 1).Union(Model.DistinctBy(x => x.BudgetId).Where(x => x.BudgetId != 0).Select(y => new SelectListItem { Value = y.BudgetId.ToString(), Text = y.BudgetDescr }));
+}
 <div style="flex-grow:1;overflow-y:auto; overflow-x:hidden; position:relative;">
     <div class="row">
         <div class="col-md-12">
@@ -12,9 +15,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @{ foreach (var entry in Model)
+                    @{
+                        foreach (var entry in Model)
                         {
-                            <tr class="work-row">
+                            <tr class="work-row" data-budgetid="@entry.BudgetId">
                                 <td class="work-col-1">@entry.WorkDate</td>
                                 <td class="work-col-1 text-right">@entry.Hours</td>
                                 <td class="work-col-1">@entry.WorkTypeDescr</td>
@@ -22,15 +26,23 @@
                             </tr>
                         }
                     }
-                <tr class="work-row">
-                    <td></td>
-                    <td class="work-col-1 text-right">@Model.Sum(x => x.Hours)</td>
-                    <td class="work-col-1">Total</td>
-                    <td></td>
-                </tr>
+                    <tr class="work-row">
+                        <td></td>
+                        <td class="work-col-1 text-right">@Model.Sum(x => x.Hours)</td>
+                        <td class="work-col-1">Total</td>
+                        <td></td>
+                    </tr>
                 </tbody>
             </table>
 
+        </div>
+    </div>
+</div>
+<div class="d-none" name="budgets">
+    <div class="row">
+        <label class="col-form-label col-3">Budget</label>
+        <div class="col-md-9">
+            <select id="ddlJobDetailBudget" asp-items="budgets" class="form-control"></select>
         </div>
     </div>
 </div>

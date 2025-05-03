@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  timecardcore:
+    ports:
+        - "8080:8080"
+        - "8081:8081"
+        - "1433:1433"
+        - "1434:1434"
+    volumes:
+        - c:\users\gcorr\.aspnet\https:\https:ro
+    build:
+      context: .
+      dockerfile: TimeCardCore\Dockerfile
+      network: "host"
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+  
+  
+    
+

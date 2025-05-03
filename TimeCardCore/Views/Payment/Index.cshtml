@@ -41,8 +41,8 @@
             if ($(e.target).prop("tagName") == "BUTTON") {
                 return;
             }
-            id = $(this).data("edit").JobId;
-            editPayments(id);
+            p = $(this).data("edit");
+            editPayments(p);
         });
 
         $("#edit").on("click","tr.payment-row", function () {
@@ -94,8 +94,10 @@
 
     });
 
-    function editPayments(id) {
-        $("#@Html.IdFor(m => m.SelectedJobId)").val(id);
+    function editPayments(p) {
+        console.log('p',p);
+        $("#@Html.IdFor(m => m.SelectedJobId)").val(p.JobId);
+        $("#@Html.IdFor(m => m.SelectedBudgetId)").val(p.BudgetId);
         submitPaymentForm(null,"#edit");
      }
 

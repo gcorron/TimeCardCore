@@ -3,8 +3,22 @@
     <TargetFramework>net8.0</TargetFramework>
     <UserSecretsId>991e0c92-0b06-4565-a192-684c18b518c9</UserSecretsId>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="cTEMP\**" />
+    <Content Remove="cTEMP\**" />
+    <EmbeddedResource Remove="cTEMP\**" />
+    <None Remove="cTEMP\**" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="5.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="5.4.0" />
@@ -20,5 +34,10 @@
     <Content Update="wwwroot\content\TimeCardTemplates.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ContainerEnvironmentVariable Include="ASPNETCORE_HTTPS_PORTS">
+      <Value>8081</Value>
+    </ContainerEnvironmentVariable>
   </ItemGroup>
 </Project>

@@ -37,7 +37,7 @@
                             <div class="col-md-3">
                                 <select asp-for="SelectedCycle" asp-items="Model.PayCycles" class="form-control"></select>
                             </div>
-                            <div class="col-md-2" @(Model.CanCloseCycle ? "" : "style=display:none;" )>
+                            <div class="col-md-2" @(Model.CanCloseCycle ? "" : "style=display:none;")>
                                 <button name="buttonValue" value="OpenClose" class="cancel btn btn-@(Model.IsCycleOpen ? "secondary" : "success")">@(Model.IsCycleOpen ? "Close" : "Open")</button>
                             </div>
                             <div class="col-md-2 ml-auto text-right">
@@ -79,7 +79,7 @@
                         </table>
                     </div>
                     <div id="divEdit" class="card-body pb-1 @(Model.EditWork.WorkId == 0 ? "bg-success" : "bg-info" )"
-                         @(Model.IsCycleOpen ? "" : "style=display:none;" )>
+                    @(Model.IsCycleOpen ? "" : "style=display:none;")>
                         <div class="form-group form-row">
                             <label class="col-form-label col-md-1">Date</label>
                             <div class="col-md-2">
@@ -146,9 +146,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @{ foreach (var entry in Model.WorkEntries)
+                                    @{
+                                        foreach (var entry in Model.WorkEntries)
                                         {
-                                            <tr class="work-row @(entry.WorkId == Model.EditWork.WorkId ? "bg-info": "" )" data-edit=@(Json.Serialize(new  { entry.WorkId, entry.JobId, entry.WorkDay,entry.WorkType, entry.BudgetId }))>
+                                            <tr class="work-row @(entry.WorkId == Model.EditWork.WorkId ? "bg-info": "" )" data-edit=@(Json.Serialize(new { entry.WorkId, entry.JobId, entry.WorkDay, entry.WorkType, entry.BudgetId }))>
                                                 <td class="work-col-1">@entry.WorkDate</td>
                                                 <td class="work-col-2">@entry.Job</td>
                                                 <td class="work-col-1 text-right">@entry.Hours</td>
@@ -172,10 +173,8 @@
         </form>
     </div>
     <div class="tab-pane fade" id="summary">
-
     </div>
     <div class="tab-pane fade" id="summaryJob">
-
     </div>
     <div class="tab-pane fade" id="detailJob">
         <div class="row mt-4">
@@ -183,160 +182,171 @@
             <div class="col-3">
                 <select id="ddlJobsDetail" asp-items="Model.Jobs" class="form-control"></select>
             </div>
+            <div class="col-4" name="budgets"></div>
         </div>
-        <div id="divDetailJobResults" class="row mt-4">
 
+        <div id="divDetailJobResults" class="row mt-4">
         </div>
     </div>
 </div>
 @section scripts {
     <script>
-        $(function () {
-            showEditButtons();
-            $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
-                $("#formWork").validate().cancelSubmit = true;
-                $("#formWork").submit();
-            });
-            $("#@Html.IdFor(m => m.EditWork.WorkType)").change(function () {
-                refreshEdit();
-            });
+            $(function () {
+                showEditButtons();
+                $("#@Html.IdFor(m => m.SelectedCycle)").change(function () {
+                    $("#formWork").validate().cancelSubmit = true;
+                    $("#formWork").submit();
+                });
+                $("#@Html.IdFor(m => m.EditWork.WorkType)").change(function () {
+                    refreshEdit();
+                });
 
-            $("#ddlJobsDetail").change(function () {
+                $("#ddlJobsDetail").change(function () {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("WorkDetailJob", "Work")',
+                        data: { contractorId: @Model.EditWork.ContractorId, jobId: $(this).val() },
+                        success: function (partialView) {
+                            $("#divDetailJobResults").html(partialView);
+                            var copy = $("#divDetailJobResults [name=budgets]").contents();
+                            $("#detailJob [name=budgets]").empty().append(copy);
+                        }
+                    });
+                });
+                $("#detailJob").on("change","#ddlJobDetailBudget", function () {
+                    var budgetid = $(this).val();
+                    $("#detailJob tbody tr").each(function () {
+                        console.log($(this).data("budgetid"), budgetid);
+                        var cond = $(this).data("budgetid") == budgetid;
+                        $(this).toggle(cond);
+                    });
+                });
+                $("tr.work-row").click(function () {
+                    var data = $(this).data("edit");
+                    $("#@Html.IdFor(m => m.EditWork.WorkId)").val(data.WorkId);
+                    $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(data.WorkDay.toString());
+                    $("#@Html.IdFor(m => m.EditWork.JobId)").val(data.JobId);
+                    var cells = $(this).find("td").map(function () { return $(this).text(); });
+                    $("#@Html.IdFor(m => m.EditWork.Hours)").val(cells[2]);
+                    $("#@Html.IdFor(m => m.EditWork.WorkType)").val(data.WorkType);
+                    $("#@Html.IdFor(m => m.EditWork.BudgetId)").val(data.BudgetId);
+                    $("#@Html.IdFor(m => m.EditWork.Descr)").val(cells[4]);
+                    refreshEdit();
+                });
+
+                $("#btnAdd").click(function () {
+                    $("#divEdit").addClass("bg-success").removeClass("bg-info");
+                    $("#@Html.IdFor(m => m.EditWork.WorkId)").val(0);
+                    var today = getToday();
+                    var workDay = $("#@Html.IdFor(m => m.EditWork.WorkDay) option:contains('" + today + "')");
+                    if (workDay.length) {
+                        $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(workDay.val());
+                    }
+                    $("#@Html.IdFor(m => m.EditWork.Hours)").val(0);
+                    $("#@Html.IdFor(m => m.EditWork.Descr)").val("");
+                    showEditButtons();
+                });
+
+                $("a.get-cards").click(function () {
+                    debugger;
+                var $btn = $("#btnGetCards");
+                buttonBusy($btn);
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("WorkDetailJob", "Work")',
-                    data: { contractorId: @Model.EditWork.ContractorId, jobId: $(this).val() },
-                    success: function (partialView) {
-                        $("#divDetailJobResults").html(partialView);
+                    url: '@Url.Action("GenerateDocs", "Work")',
+                    data: { contractorId: @Model.EditWork.ContractorId, cycle: @Model.SelectedCycle, weeks: $(this).data("weeks") },
+                    success: function (result) {
+                        console.log(result);
+                        buttonUnbusy($btn);
+                        if (result.success) {
+                            //window.location = '@Url.Action("DownloadTimeDocs", "Work")' + "?upd=" + new Date().getTime(); //prevent browser caching
+                        }
+                        else {
+                            buttonUnbusy($btn);
+                            showAlertHeader(result.message);
+                        }
+                    },
+                    error: function () {
+                        buttonUnbusy($btn);
+                        showAlertHeader("Server Error");
                     }
                 });
             });
-            $("tr.work-row").click(function () {
-                var data = $(this).data("edit");
-                $("#@Html.IdFor(m => m.EditWork.WorkId)").val(data.WorkId);
-                $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(data.WorkDay.toString());
-                $("#@Html.IdFor(m => m.EditWork.JobId)").val(data.JobId);
-                var cells = $(this).find("td").map(function () { return $(this).text(); });
-                $("#@Html.IdFor(m => m.EditWork.Hours)").val(cells[2]);
-                $("#@Html.IdFor(m => m.EditWork.WorkType)").val(data.WorkType);
-                $("#@Html.IdFor(m => m.EditWork.BudgetId)").val(data.BudgetId);
-                $("#@Html.IdFor(m => m.EditWork.Descr)").val(cells[4]);
-                refreshEdit();
-            });
 
-            $("#btnAdd").click(function () {
-                $("#divEdit").addClass("bg-success").removeClass("bg-info");
-                $("#@Html.IdFor(m => m.EditWork.WorkId)").val(0);
-                var today = getToday();
-                var workDay = $("#@Html.IdFor(m => m.EditWork.WorkDay) option:contains('" + today + "')");
-                if (workDay.length) {
-                    $("#@Html.IdFor(m => m.EditWork.WorkDay)").val(workDay.val());
-                }
-                $("#@Html.IdFor(m => m.EditWork.Hours)").val(0);
-                $("#@Html.IdFor(m => m.EditWork.Descr)").val("");
-                showEditButtons();
-            });
+            function refreshEdit() {
+                $("<input>").prop("type", "hidden").prop("name", "buttonValue").val("Refresh").appendTo("#formWork");
+                $("#formWork").validate().cancelSubmit = true;
+                $("#formWork").submit();
+            }
+            if ($("#saveAlert div.validation-summary-valid").length == 0) {
+                $("#saveAlert").show();
+            }
 
-            $("a.get-cards").click(function () {
-                debugger;
-            var $btn = $("#btnGetCards");
-            buttonBusy($btn);
-            $.ajax({
-                type: "POST",
-                url: '@Url.Action("GenerateDocs", "Work")',
-                data: { contractorId: @Model.EditWork.ContractorId, cycle: @Model.SelectedCycle, weeks: $(this).data("weeks") },
-                success: function (result) {
-                    console.log(result);
-                    buttonUnbusy($btn);
-                    if (result.success) {
-                        //window.location = '@Url.Action("DownloadTimeDocs", "Work")' + "?upd=" + new Date().getTime(); //prevent browser caching
+            $('a[href="#summary"]').on("show.bs.tab", function (e) {
+                $("#summary").html("Loading ...");
+                 $.ajax({
+                     type: "POST",
+                     url: '@Url.Action("WorkSummary", "Work")',
+                     data: { contractorId: $("#@Html.IdFor(m => m.SelectedContractorId)").val() },
+                    success: function (html) {
+                        $("#summary").html(html);
                     }
-                    else {
-                        buttonUnbusy($btn);
-                        showAlertHeader(result.message);
+                });
+            });
+
+            $('a[href="#summaryJob"]').on("show.bs.tab", function (e) {
+                $("#summaryJob").html("Loading ...");
+                 $.ajax({
+                     type: "POST",
+                     url: '@Url.Action("WorkSummaryJob", "Work")',
+                     data: { contractorId: $("#@Html.IdFor(m => m.SelectedContractorId)").val() },
+                    success: function (html) {
+                        $("#summaryJob").html(html);
                     }
-                },
-                error: function () {
-                    buttonUnbusy($btn);
-                    showAlertHeader("Server Error");
-                }
+                });
             });
-        });
 
-        function refreshEdit() {
-            $("<input>").prop("type", "hidden").prop("name", "buttonValue").val("Refresh").appendTo("#formWork");
-            $("#formWork").validate().cancelSubmit = true;
-            $("#formWork").submit();
-        }
-        if ($("#saveAlert div.validation-summary-valid").length == 0) {
-            $("#saveAlert").show();
-        }
-
-        $('a[href="#summary"]').on("show.bs.tab", function (e) {
-            $("#summary").html("Loading ...");
-             $.ajax({
-                 type: "POST",
-                 url: '@Url.Action("WorkSummary","Work")',
-                 data: { contractorId: $("#@Html.IdFor(m => m.SelectedContractorId)").val() },
-                success: function (html) {
-                    $("#summary").html(html);
-                }
+            $('th.sort-header').css("cursor","pointer").on("click", function () {
+                $("#@Html.IdFor(m => m.SortByJob)").val($(this).text() == "Job" ? "True" : "False");
+                $("#formWork").validate().cancelSubmit = true;
+                $("#formWork").submit();
             });
-        });
+        })
 
-        $('a[href="#summaryJob"]').on("show.bs.tab", function (e) {
-            $("#summaryJob").html("Loading ...");
-             $.ajax({
-                 type: "POST",
-                 url: '@Url.Action("WorkSummaryJob","Work")',
-                 data: { contractorId: $("#@Html.IdFor(m => m.SelectedContractorId)").val() },
-                success: function (html) {
-                    $("#summaryJob").html(html);
-                }
-            });
-        });
+        function getToday() {
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1; //January is 0!
 
-        $('th.sort-header').css("cursor","pointer").on("click", function () {
-            $("#@Html.IdFor(m => m.SortByJob)").val($(this).text() == "Job" ? "True" : "False");
-            $("#formWork").validate().cancelSubmit = true;
-            $("#formWork").submit();
-        });
-    })
+            if (dd < 10) {
+                dd = '0' + dd
+            }
 
-    function getToday() {
-        var today = new Date();
-        var dd = today.getDate();
-        var mm = today.getMonth() + 1; //January is 0!
+            if (mm < 10) {
+                mm = '0' + mm
+            }
 
-        if (dd < 10) {
-            dd = '0' + dd
+            return mm + '/' + dd;
         }
 
-        if (mm < 10) {
-            mm = '0' + mm
+        function buttonBusy(btn) {
+            if (btn.find("span.spinner-border").length == 0) {
+                btn.append('<span class="spinner-border spinner-border-sm"></span>');
+            }
+        }
+        function buttonUnbusy(btn) {
+            btn.find("span.spinner-border").remove();
+        }
+        function showAlertHeader(message) {
+            var alert = $("#alertHeader");
+            alert.html(message).show();
+            setTimeout(function () { alert.hide(); }, 5000);
         }
 
-        return mm + '/' + dd;
-    }
-
-    function buttonBusy(btn) {
-        if (btn.find("span.spinner-border").length == 0) {
-            btn.append('<span class="spinner-border spinner-border-sm"></span>');
+        function showEditButtons() {
+            var newWork = $("#@Html.IdFor(m => m.EditWork.WorkId)").val() == 0;
+            $("#divEditButtons button[value!='Save']").toggle(!newWork);
         }
-    }
-    function buttonUnbusy(btn) {
-        btn.find("span.spinner-border").remove();
-    }
-    function showAlertHeader(message) {
-        var alert = $("#alertHeader");
-        alert.html(message).show();
-        setTimeout(function () { alert.hide(); }, 5000);
-    }
-
-    function showEditButtons() {
-        var newWork = $("#@Html.IdFor(m => m.EditWork.WorkId)").val() == 0;
-        $("#divEditButtons button[value!='Save']").toggle(!newWork);
-    }
 
 
     </script>

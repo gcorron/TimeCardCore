@@ -14,6 +14,15 @@ namespace TimeCard.Repo.Repos
         {
             return QuerySp<Budget>("sBudget", new { active });
         }
+        public IEnumerable<Budget> GetBudgetsForJob(int jobId)
+        {
+            return QuerySp<Budget>("sBudget", new { jobId });
+        }
+
+        public Budget GetBudget(int budgetId)
+        {
+            return QuerySingleSp<Budget>("sBudget", new { budgetId });
+        }
         public void UpdateBudget(Budget budget)
         {
             ExecuteSp("uBudget", new { budget.BudgetId, budget.JobId, budget.BudgetType, budget.BudgetHours, budget.Active });

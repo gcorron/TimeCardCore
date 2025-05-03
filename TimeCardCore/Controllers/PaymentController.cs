@@ -21,6 +21,8 @@ namespace TimeCardCore.Controllers
         private readonly WorkRepo _WorkRepo;
         private readonly JobRepo _JobRepo;
         private readonly LookupRepo _LookupRepo;
+        private readonly BudgetRepo _BudgetRepo;
+
 
         public PaymentController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)
         {
@@ -28,6 +30,7 @@ namespace TimeCardCore.Controllers
             _WorkRepo = new WorkRepo(ConnString);
             _JobRepo = new JobRepo(ConnString);
             _LookupRepo = new LookupRepo(ConnString);
+            _BudgetRepo = new BudgetRepo(ConnString);
         }
 
         [HttpGet]
@@ -65,6 +68,7 @@ namespace TimeCardCore.Controllers
                     {
                         vm.EditPayment.ContractorId = vm.SelectedContractorId;
                         vm.EditPayment.JobId = vm.SelectedJobId;
+                        vm.EditPayment.BudgetId = vm.SelectedBudgetId;
                         _PaymentRepo.SavePayment(vm.EditPayment);
                         vm.EditPayment = new TimeCard.Domain.Payment { PayDate = vm.EditPayment.PayDate };
                         ModelState.Clear();
@@ -97,6 +101,11 @@ namespace TimeCardCore.Controllers
             {
                 var job = _JobRepo.GetJob(vm.SelectedJobId);
                 vm.SelectedJob = job;
+                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" },1).Union(_BudgetRepo.GetBudgetsForJob(vm.SelectedJobId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
+                if (vm.SelectedBudgetId != 0)
+                {
+                    vm.SelectedBudget = _BudgetRepo.GetBudget(vm.SelectedBudgetId).Descr;
+                }
                 vm.JobIsTimeCard = (job.BillTypeDescr == "TC");
                 if (vm.JobIsTimeCard)
                 {
@@ -111,7 +120,7 @@ namespace TimeCardCore.Controllers
                 }
                 else
                 {
-                    vm.Payments = _PaymentRepo.GetPaymentsForJob(vm.SelectedContractorId, vm.SelectedJobId);
+                    vm.Payments = _PaymentRepo.GetPaymentsForJob(vm.SelectedContractorId, vm.SelectedJobId, vm.SelectedBudgetId );
                 }
             }
         }
