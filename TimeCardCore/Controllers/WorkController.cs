@@ -38,7 +38,7 @@ namespace TimeCardCore.Controllers
 
         public IActionResult Index()
         {
-            var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername };
+            var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername, EditPermission = UserContractorId == ContractorId ? "Full" : "Admin" };
             prepWork(vm);
             return View(vm);
         }
@@ -140,7 +140,7 @@ namespace TimeCardCore.Controllers
             vm.WorkTypeBudget = workTypes.FirstOrDefault(x => x.Val == "BUDG").Id == vm.EditWork.WorkType;
             if (vm.WorkTypeBudget)
             {
-                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" }, 1).Union(_BudgetRepo.GetBudgets(true).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
+                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" }, 1).Union(_BudgetRepo.GetBudgets(true, ContractorId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
             }
             else
             {
@@ -191,17 +191,16 @@ namespace TimeCardCore.Controllers
                 var fileList = new List<string>();
                 GenerateTimeCards(contractorId, name, templateFile, cycle, fileList, weeks);
                 GenerateTimeBooks(contractorId, name, templateFile, cycle, fileList);
-                GenerateInvoices(contractorId, name, templateFile, cycle, fileList);
-                GenerateSummary(contractorId, name, templateFile, cycle, fileList);
+                //GenerateInvoices(contractorId, name, templateFile, cycle, fileList);
+                //GenerateSummary(contractorId, name, templateFile, cycle, fileList);
                 if (!fileList.Any())
                 {
                     return Json(new { success = false, message = "Nothing to generate." });
                 }
 
 
-                string zipFile = $"C:\\TEMP\\{name}.zip";
-                TempData["Download"] = JsonConvert.SerializeObject(new Infrastructure.ZipDownload { FileName = zipFile, FileList = fileList });
-                return Json(new { success = true });
+                string zipFile = $"{name}.zip";
+                return Json(new { success = true, obj = new ZipDownload { FileName = zipFile, FileList = fileList } });
             }
             catch (Exception ex)
             {
@@ -250,7 +249,7 @@ namespace TimeCardCore.Controllers
                         int blankRow = is2G ? 12 : 11;
                         //create a new time card and populate it
                         string dateString = weeks == 4 ? new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString4 : new TimeCard.Domain.WorkExtended { WorkDay = (decimal)cycle }.TimeCardDateString;
-                        var file = new FileInfo($"C:\\TEMP\\FWSI_TC_{dateString}_{name.Split(" ").First()}_{tc.First().Project.Replace("/", "").Replace(" ", "")}.xlsx");
+                        var file = new FileInfo($"{DocsFolder()}\\FWSI_TC_{dateString}_{name.Split(" ").First()}_{tc.First().Project.Replace("/", "").Replace(" ", "")}.xlsx");
                         System.IO.File.Delete(file.FullName);
                         ExcelWorksheet sheet = null;
                         using (var package = is2G ? new ExcelPackage(file, templateFile2G) : new ExcelPackage(file))
@@ -306,9 +305,9 @@ namespace TimeCardCore.Controllers
                                 }
                                 if (is2G)
                                 {
-                                    
 
-                                    sheet.Cells[currentRow[w], 2].Value = Regex.Replace(entry.Descr,pattern,"", RegexOptions.IgnoreCase).Trim();
+
+                                    sheet.Cells[currentRow[w], 2].Value = Regex.Replace(entry.Descr, pattern, "", RegexOptions.IgnoreCase).Trim();
                                     sheet.Cells[currentRow[w], 3].Value = Regex.Match(entry.Descr, pattern, RegexOptions.IgnoreCase).Value;
                                     string worktype = "";
                                     switch (entry.WorkType)
@@ -321,12 +320,12 @@ namespace TimeCardCore.Controllers
                                             break;
                                         case "DISC":
                                             worktype = "OH";
-                                           break;
+                                            break;
                                     }
                                     sheet.Cells[currentRow[w], 4].Value = entry.WorkType;
                                     sheet.Cells[currentRow[w], 5].Value = entry.Project;
                                     sheet.Cells[currentRow[w], 6 + entry.WorkWeekDay].Value = entry.Hours;
-                                    sheet.Cells[currentRow[w], 14].Formula = $"= SUM(F{ currentRow[w]}:L{ currentRow[w]})";
+                                    sheet.Cells[currentRow[w], 14].Formula = $"= SUM(F{currentRow[w]}:L{currentRow[w]})";
                                 }
                                 else
                                 {
@@ -334,7 +333,7 @@ namespace TimeCardCore.Controllers
                                     sheet.Cells[currentRow[w], 2].Value = entry.Descr;
                                     sheet.Cells[currentRow[w], 4].Value = entry.Project;
                                     sheet.Cells[currentRow[w], 5 + entry.WorkWeekDay].Value = entry.Hours;
-                                    sheet.Cells[currentRow[w], 13].Formula = $"= SUM(E{ currentRow[w]}:K{ currentRow[w]})";
+                                    sheet.Cells[currentRow[w], 13].Formula = $"= SUM(E{currentRow[w]}:K{currentRow[w]})";
                                 }
                                 currentRow[w]++;
                             }
@@ -347,9 +346,9 @@ namespace TimeCardCore.Controllers
                                 for (int i = j; i < 9 + j; i++)
                                 {
                                     var column = "EFGHIJKLMN".Substring(i, 1);
-                                    sheet.Cells[currentRow[w] + k, i + 5].Formula = $"= SUM({column}{ blankRow}:{column}{ currentRow[w] - 1})";
+                                    sheet.Cells[currentRow[w] + k, i + 5].Formula = $"= SUM({column}{blankRow}:{column}{currentRow[w] - 1})";
                                 }
-                                sheet.DeleteRow(currentRow[w]+1);
+                                sheet.DeleteRow(currentRow[w] + 1);
                                 sheet.DeleteRow(currentRow[w]);
                             }
                             sheet.Calculate();
@@ -373,7 +372,7 @@ namespace TimeCardCore.Controllers
             using (var templatePackage = new ExcelPackage(templateFile))
             {
                 var templateSheet = templatePackage.Workbook.Worksheets["TimeBook"];
-                var file = new FileInfo($"C:\\TEMP\\{name}_TimeBooks.xlsx");
+                var file = new FileInfo($"{DocsFolder()}\\{name}_TimeBooks.xlsx");
                 System.IO.File.Delete(file.FullName);
 
                 using (var package = new ExcelPackage(file))
@@ -419,7 +418,7 @@ namespace TimeCardCore.Controllers
                 var templateSheet = templatePackage.Workbook.Worksheets["Invoice"];
                 var contractor = _AppUserRepo.GetContractor(contractorId);
 
-                var file = new FileInfo($"C:\\TEMP\\{name}_Invoices.xlsx");
+                var file = new FileInfo($"{DocsFolder()}\\{name}_Invoices.xlsx");
                 System.IO.File.Delete(file.FullName);
 
                 using (var package = new ExcelPackage(file))
@@ -465,7 +464,7 @@ namespace TimeCardCore.Controllers
         public void GenerateSummary(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
         {
             var workSummary = _WorkRepo.GetWorkSummary(contractorId, true).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle);
-            var file = new FileInfo($"C:\\TEMP\\{name}_Summary.xlsx");
+            var file = new FileInfo($"{DocsFolder()} \\{name}_Summary.xlsx");
             System.IO.File.Delete(file.FullName);
             using (var templatePackage = new ExcelPackage(templateFile))
             {
@@ -551,59 +550,47 @@ namespace TimeCardCore.Controllers
             }
         }
 
-
-        [HttpGet]
-        public void DownloadTimeDocs()
+        public async Task<ActionResult> DownloadTimeDocs([FromBody] ZipDownload download)
         {
-            var download = JsonConvert.DeserializeObject(TempData["Download"].ToString(), typeof(Infrastructure.ZipDownload)) as Infrastructure.ZipDownload;
-
-            var response = this.HttpContext.Response;
-            response.ContentType = "application/zip";
-            // If the browser is receiving a mangled zipfile, IIS Compression may cause
-            // this problem. Some members have found that 
-            //Response.ContentType = "application/octet-stream" 
-            // has solved this. May be specific to Internet Explorer.
-
-            response.Headers.Append("Content-Disposition", $"attachment; filename=\"{Path.GetFileName(download.FileName)}\"");
-            response.Headers["Cache-Control"] = "private";
-            response.Headers["Expires"] = DateTime.Now.AddMinutes(3).ToString();
 
             var buffer = new byte[4096];
-
-            using (var zipOutputStream = new ZipOutputStream(response.Body))
+            byte[] retBytes = null;
+            using (var stream = new MemoryStream())
             {
-
-                // 0-9, 9 being the highest level of compression
-                zipOutputStream.SetLevel(3);
-
-                foreach (string fileName in download.FileList)
+                using (var zipOutputStream = new ZipOutputStream(stream))
                 {
-
-                    using (Stream fs = System.IO.File.OpenRead(fileName))
+                    // 0-9, 9 being the highest level of compression
+                    zipOutputStream.SetLevel(3);
+                    foreach (string fileName in download.FileList)
                     {
 
-                        var entry = new ZipEntry(ZipEntry.CleanName(Path.GetFileName(fileName)));
-                        entry.Size = fs.Length;
-                        // Setting the Size provides WinXP built-in extractor 
-                        // compatibility, but if not available, you can instead set 
-                        //zipOutputStream.UseZip64 = UseZip64.Off
-
-                        zipOutputStream.PutNextEntry(entry);
-
-                        int count = fs.Read(buffer, 0, buffer.Length);
-                        while (count > 0)
+                        using (Stream fs = System.IO.File.OpenRead(fileName))
                         {
-                            zipOutputStream.Write(buffer, 0, count);
-                            count = fs.Read(buffer, 0, buffer.Length);
-                            response.Body.Flush();
+
+                            var entry = new ZipEntry(ZipEntry.CleanName(Path.GetFileName(fileName)));
+                            entry.Size = fs.Length;
+                            // Setting the Size provides WinXP built-in extractor 
+                            // compatibility, but if not available, you can instead set 
+                            //zipOutputStream.UseZip64 = UseZip64.Off
+
+                            await zipOutputStream.PutNextEntryAsync(entry);
+
+                            int count = await fs.ReadAsync(buffer, 0, buffer.Length);
+                            while (count > 0)
+                            {
+                                await zipOutputStream.WriteAsync(buffer, 0, count);
+                                count = await fs.ReadAsync(buffer, 0, buffer.Length);
+                            }
                         }
                     }
                 }
+                retBytes = stream.ToArray();
             }
-            response.Body.Flush();
-            response.Body.Close();
+            return File(retBytes, "application/zip", download.FileName);
         }
-
-
+        private string DocsFolder()
+        {
+            return $"{WebRootPath}\\Docs";
+;        }
     }
 }

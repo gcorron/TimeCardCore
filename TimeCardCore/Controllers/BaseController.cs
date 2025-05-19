@@ -19,11 +19,12 @@ namespace TimeCardCore.Controllers
         private readonly int _curUserId;
         private readonly int _curContractorId;
         private readonly string _curUserName;
+        private readonly int _curUserContractorId;
 
         protected int CurrentUserId { get => _curUserId; }
         protected string CurrentUsername { get => _curUserName; }
         protected int ContractorId { get => _curContractorId; }
-
+        protected int UserContractorId { get => _curUserContractorId; }
         public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base()
         {
             ConnString = config.GetConnectionString("Timecard");
@@ -35,6 +36,7 @@ namespace TimeCardCore.Controllers
                 _curUserName = user.Claims.Where(x => x.Type == "FullName").Single().Value;
                 _curUserId = int.Parse(user.Claims.Where(x => x.Type == "UserId").Single().Value);
                 _curContractorId = int.Parse(user.Claims.Where(x => x.Type == "ContractorId").Single().Value);
+                _curUserContractorId = int.Parse(user.Claims.Where(x => x.Type == "UserContractorId").Single().Value);
             }
         }
 

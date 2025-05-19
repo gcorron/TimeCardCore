@@ -8,6 +8,6 @@ namespace TimeCardCore.Infrastructure
     public class ZipDownload
     {
         public string FileName { get; set; }
-        public IEnumerable<string> FileList { get; set; }
+        public List<string> FileList { get; set; }
     }
 }

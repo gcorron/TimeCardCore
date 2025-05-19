@@ -37,7 +37,7 @@ namespace TimeCardCore
             }
             cb.Build();
 
-            
+
             builder.Services.AddRazorPages();
             builder.Host.UseSerilog((ctx, loggerConfiguration) =>
             {
@@ -45,13 +45,23 @@ namespace TimeCardCore
             });
             builder.Services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
             builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddCookie(options =>
+    {
+        options.ExpireTimeSpan = TimeSpan.FromDays(1);
+        options.SlidingExpiration = true;
+        options.Cookie.IsEssential = true; // Required for GDPR compliance
+        options.Cookie.HttpOnly = true; // Prevent JavaScript access
+        options.Cookie.SameSite = SameSiteMode.Strict; // Prevent CSRF
+    });
+
             builder.Services.AddAuthorization();
             var mvc = builder.Services.AddControllersWithViews()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null)
                 .AddRazorRuntimeCompilation();
 
-             var ConnString = builder.Configuration.GetConnectionString("TimeCard");
+            var ConnString = builder.Configuration.GetConnectionString("TimeCard");
             builder.Services.AddScoped<TimeCard.Repo.Repos.IRepo>(c => new LookupRepo(ConnString));
 
             var app = builder.Build();

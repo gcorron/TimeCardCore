@@ -34,7 +34,7 @@
                             var payments = Model.Payments.Where(x => x.JobId == summary.JobId && x.BudgetId == summary.BudgetId );
                             if (payments.Any())
                             {
-                                <button type="button" class="btn btn-link" data-toggle="collapse" data-target="#payments@(summary.JobId)">( @payments.Count() )</button>
+                                <button type="button" class="btn btn-link" data-bs-toggle="collapse" data-target="#payments@(summary.JobId)">( @payments.Count() )</button>
                                 <div class="collapse row" id="payments@(summary.JobId)">
                                     @{
                                         foreach (var pmt in payments)

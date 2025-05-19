@@ -101,7 +101,7 @@ namespace TimeCardCore.Controllers
             {
                 var job = _JobRepo.GetJob(vm.SelectedJobId);
                 vm.SelectedJob = job;
-                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" },1).Union(_BudgetRepo.GetBudgetsForJob(vm.SelectedJobId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
+                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" },1).Union(_BudgetRepo.GetBudgetsForJob(vm.SelectedJobId, ContractorId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
                 if (vm.SelectedBudgetId != 0)
                 {
                     vm.SelectedBudget = _BudgetRepo.GetBudget(vm.SelectedBudgetId).Descr;

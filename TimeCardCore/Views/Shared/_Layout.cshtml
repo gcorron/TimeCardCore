@@ -6,7 +6,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TimeCard</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-grid.css" />
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-reboot.css" />
+    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-utilities.css" />
+    <link rel="stylesheet" href="~/bootstrap-datepicker/css/bootstrap-datepicker.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link rel="stylesheet" href="~/lib/font-awesome/css/all.css" />
     <link rel="stylesheet" href="~/lib/font-awesome/css/v4-shims.css" />
@@ -14,11 +18,11 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-dark fixed-top" , style="background-color:darkmagenta">
+        <nav class="navbar navbar-expand-sm fixed-top" , style="background-color:lightgray">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Work" asp-action="Index">TimeCard</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
@@ -27,19 +31,27 @@
                         if (user.Identity.IsAuthenticated)
                         {
                             var fullName = user.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value;
-                            <button id="btnLogOut" class="btn btn-sm btn-light ml-2">Log Out</button>
-                            <p class="nav navbar-text navbar-right">You are logged in as @fullName</p>
-                            
+                            string worker = "";
+                            if (user.Claims.FirstOrDefault(x => x.Type == "Role")?.Value == "Admin")
+                            {
+                                worker = user.Claims.FirstOrDefault(x => x.Type == "ContractorName")?.Value ?? "";
+                                if (worker != "")
+                                {
+                                    worker = " for " + worker;
+                                }
+                                <button id="btnWorker" class="btn btn-sm btn-light ms-2">Worker</button>
+                            }
+                            <button id="btnLogOut" class="btn btn-sm btn-light ms-2">Log Out</button>
+                            <p class="nav navbar-text navbar-right">@($"{fullName}{worker}")</p>
                         }
                     }
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item nav-select-work">
                         <a class="nav-link" asp-area="" asp-controller="Work" asp-action="Index">Work</a>
                     </li>
-                    <li class="nav-item nav-select-job">
+                    <li class="nav-item nav-select-budget">
                         <a class="nav-link" asp-area="" asp-controller="Budget" asp-action="Index">Budget</a>
                     </li>
-
                     <li class="nav-item nav-select-payment">
                         <a class="nav-link" asp-area="" asp-controller="Payment" asp-action="Index">Payment</a>
                     </li>
@@ -62,7 +74,12 @@
             @RenderBody()
         </main>
     </div>
-
+    <div id="modalWorker" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2020 - TimeCard - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
@@ -72,18 +89,19 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/bootstrap/js/bootstrap.bundle.js"></script>
+    <script src="~/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         $(function () {
-            var controller = '@(HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString() )'
+            var controller = '@(HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString() )';
             controller = controller.toLowerCase();
             var $li = $("li.nav-select-" + controller);
             if (($li).length) {
                 $li.addClass("active");
             }
             else {
-                $("li.nav-item").removeClass("active");
+                $li.removeClass("active");
             }
             $("#btnLogOut").click(function() {
                 $.ajax({
@@ -91,6 +109,28 @@
                     url: "/Account/LogOut",
                     success: function () {
                         location = "/";
+                    }
+                });
+            });
+            $("#btnWorker").on("click", function () {
+                $.ajax({
+                    type:"POST",
+                    url: "/Account/SelectWorker",
+                    success: function (html) {
+                        $("#modalWorker .modal-content").html(html);
+                        $("#modalWorker").modal("show");
+                    }
+                })
+            });
+            $("#modalWorker").on("change", "select", function () {
+                var contractorId = $(this).val();
+                var contractorName = $(this).find("option:selected").text();
+                $.ajax({
+                    type:"POST",
+                    url: "/Account/ChangeWorker",
+                    data: {contractorId: contractorId, contractorName: contractorName },
+                    success: function () {
+                        window.location = "/Work/Index";
                     }
                 });
             });

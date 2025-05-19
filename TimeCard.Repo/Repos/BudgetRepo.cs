@@ -10,13 +10,13 @@ namespace TimeCard.Repo.Repos
         public BudgetRepo(string connectionString) : base(connectionString)
         {
         }
-        public IEnumerable<Budget> GetBudgets(bool active)
+        public IEnumerable<Budget> GetBudgets(bool active, int contractorId)
         {
-            return QuerySp<Budget>("sBudget", new { active });
+            return QuerySp<Budget>("sBudget", new { active, contractorId });
         }
-        public IEnumerable<Budget> GetBudgetsForJob(int jobId)
+        public IEnumerable<Budget> GetBudgetsForJob(int jobId, int contractorId)
         {
-            return QuerySp<Budget>("sBudget", new { jobId });
+            return QuerySp<Budget>("sBudget", new { jobId, contractorId });
         }
 
         public Budget GetBudget(int budgetId)
@@ -25,7 +25,11 @@ namespace TimeCard.Repo.Repos
         }
         public void UpdateBudget(Budget budget)
         {
-            ExecuteSp("uBudget", new { budget.BudgetId, budget.JobId, budget.BudgetType, budget.BudgetHours, budget.Active });
+            ExecuteSp("uBudget", new { budget.BudgetId, budget.JobId, budget.BudgetType, budget.BudgetHours, budget.Active, budget.ContractorId });
+        }
+        public bool DeleteBudget(int budgetId)
+        {
+            return QuerySingleSp<bool>("dBudget", new { budgetId });
         }
     }
 }

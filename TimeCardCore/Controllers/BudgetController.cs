@@ -41,32 +41,39 @@ namespace TimeCardCore.Controllers
             return View(vm);
         }
         [HttpPost]
-        public IActionResult Index(BudgetViewModel vm, string buttonValue="")
+        public IActionResult Index(BudgetViewModel vm, string buttonValue)
         {
             switch(buttonValue)
             {
                 case "Save":
                     _BudgetRepo.UpdateBudget(vm.EditBudget);
+                    vm.Action = null;
                     break;
                 case "Delete":
+                    _BudgetRepo.DeleteBudget(vm.EditBudget.BudgetId);
+                    vm.Action = null;
+                    break;
+                case "Add":
+                    vm.Action = null;
                     break;
                 default:
                     break;
             }
             prepBudget(vm);
+            ModelState.Clear();
             return View(vm);
         }
 
         private void prepBudget(BudgetViewModel vm)
         {
-            vm.Budgets = _BudgetRepo.GetBudgets(vm.Active);
+            vm.Budgets = _BudgetRepo.GetBudgets(vm.Active, ContractorId);
             if (vm.Action == "Edit")
             {
-                vm.EditBudget = vm.Budgets.FirstOrDefault(x => x.BudgetId == vm.ActionId);
+                vm.EditBudget = vm.Budgets.FirstOrDefault(x => x.BudgetId == vm.ActionId) ?? new Budget { Active = true, ContractorId = ContractorId };
             }
             else
             {
-                vm.EditBudget = new Budget { Active = true };
+                vm.EditBudget = new Budget { Active = true, ContractorId = ContractorId };
             }
             vm.Jobs = Enumerable.Repeat(new SelectListItem { Text="- Select -", Value="0"},1).Union(_JobRepo.GetJobStart(0).OrderBy(x => x.Descr).Select(x => new SelectListItem { Text = x.Descr, Value = x.JobId.ToString() }));
             vm.BudgetTypes = _LookupRepo.GetLookups("Budget","- Select -").OrderBy(x => x.Val).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });

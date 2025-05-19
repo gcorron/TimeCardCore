@@ -23,5 +23,6 @@ namespace TimeCardCore.Models
         public bool CanCloseCycle { get; set; }
         public bool SortByJob { get; set; }
         public bool WorkTypeBudget { get; set; }
+        public string EditPermission { get; set; }
     }
 }

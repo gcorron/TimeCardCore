@@ -1,9 +1,7 @@
 ﻿@model JobAddViewModel
-<div class="modal-header bg-secondary">
-    <h5 class="text-light">Add/Remove Job</h5>
-    <button type="button" title="Close" onclick="$(this).closest('.modal').modal('hide');">
-        <span aria-hidden="true">&times;</span>
-    </button>
+<div class="modal-header">
+    <h5 class="modal-title">Add/Remove Job</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 <div class="modal-body">
     <form id="formAddJob" autocomplete="off">
@@ -14,7 +12,7 @@
         </div>
         <ul class="nav nav-tabs">
             <li class="nav-item">
-                <a class="nav-link active" data-toggle="tab" href="#addJob">Add</a>
+                <a class="nav-link active" data-bs-toggle="tab" href="#addJob">Add</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" href="#removeJob">Remove</a>
@@ -22,26 +20,26 @@
         </ul>
         <div class="tab-content">
             <div class="tab-pane active fade show" id="addJob">
-                <div class="form-group form-row mt-3">
+                <div class="row mt-3 mb-2">
                     <label class="col-2 col-form-label">Client</label>
-                    <div class="col-8"><select asp-for="SelectedClientId" asp-items="Model.Clients" class="form-control"></select></div>
+                    <div class="col-8"><select asp-for="SelectedClientId" asp-items="Model.Clients" class="form-select"></select></div>
                 </div>
-                <div class="form-group form-row">
+                <div class="row mb-2">
                     <label class="col-2 col-form-label">Project</label>
-                    <div class="col-8"><select asp-for="SelectedProjectId" asp-items="Model.Projects" class="form-control"></select></div>
+                    <div class="col-8"><select asp-for="SelectedProjectId" asp-items="Model.Projects" class="form-select"></select></div>
                 </div>
-                <div class="form-group form-row">
+                <div class="row mb-2">
                     <label class="col-2 col-form-label">Bill Type</label>
-                    <div class="col-8"><select asp-for="SelectedBillTypeId" asp-items="Model.BillTypes" class="form-control"></select></div>
+                    <div class="col-8"><select asp-for="SelectedBillTypeId" asp-items="Model.BillTypes" class="form-select"></select></div>
                     <div class="col-1 ml-auto text-right">
                         <button id="btnSaveJob" class="btn btn-default fa fa-2x fa-check" type="button" title="Save"></button>
                     </div>
                 </div>
             </div>
             <div class="tab-pane fade" id="removeJob">
-                <div class="form-group form-row mt-3">
+                <div class="row mt-3">
                     <label class="col-2 col-form-label">Job</label>
-                    <div class="col-8"><select asp-for="SelectedJobId" asp-items="Model.Jobs" class="form-control"></select></div>
+                    <div class="col-8"><select asp-for="SelectedJobId" asp-items="Model.Jobs" class="form-select"></select></div>
                     <div class="col-2 ml-auto text-right">
                         <button id="btnRemoveJob" class="btn btn-primary" type="button" title="Remove" disabled>Remove</button>
                     </div>

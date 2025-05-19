@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using TimeCard.Domain;
@@ -129,7 +130,8 @@ namespace TimeCardCore.Controllers
                         new Claim(ClaimTypes.Name, vm.UserName),
                         new Claim("UserId",login.UserId.ToString()),
                         new Claim("FullName",login.UserFullName),
-                        new Claim("ContractorId",login.ContractorId.ToString())
+                        new Claim("ContractorId",login.ContractorId.ToString()),
+                        new Claim("UserContractorId",login.ContractorId.ToString())
                     };
                         foreach (var role in roles)
                         {
@@ -139,8 +141,8 @@ namespace TimeCardCore.Controllers
                         var authProperties = new AuthenticationProperties
                         {
                             IsPersistent = vm.RememberMe,
-                            IssuedUtc = login.LastLogin,
-                            ExpiresUtc = DateTimeOffset.Now.AddDays(14),
+                            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8),
+                            AllowRefresh = true
                         };
                         HttpContext.SignInAsync(
                             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -158,6 +160,43 @@ namespace TimeCardCore.Controllers
 
             ModelState.AddModelError("failed", message);
             return View(vm);
+        }
+        [Authorize("Admin","Read")]
+        public async void ChangeWorker(int contractorId, string contractorName)
+        {
+            var user = HttpContext.User;
+            if (user == null || !user.Identity.IsAuthenticated)
+            {
+                return;
+            }
+
+            var identity = (ClaimsIdentity)user.Identity;
+            var newIdentity = new ClaimsIdentity(identity.Claims,
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var existingPreference = newIdentity.FindFirst("ContractorId");
+            if (existingPreference != null)
+            {
+                newIdentity.RemoveClaim(existingPreference);
+            }
+            existingPreference = newIdentity.FindFirst("ContractorName");
+            if (existingPreference != null)
+            {
+                newIdentity.RemoveClaim(existingPreference);
+            }
+
+            newIdentity.AddClaim(new Claim("ContractorId", contractorId.ToString()));
+            newIdentity.AddClaim(new Claim("ContractorName", contractorName.ToString()));
+
+
+            var newPrincipal = new ClaimsPrincipal(newIdentity);
+            var authProperties = await HttpContext.AuthenticateAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                newPrincipal,
+                authProperties.Properties); // Reuse original properties
+
         }
 
         [HttpPost]
@@ -180,7 +219,11 @@ namespace TimeCardCore.Controllers
             }
             return PartialView("_ContractorModal",contractor);
         }
-
+        public ActionResult SelectWorker()
+        {
+            var vm = _AppUserRepo.GetUsers().Select(x => new SelectListItem { Text = x.UserName, Value = x.ContractorId.ToString(), Selected = x.ContractorId == ContractorId });
+            return PartialView("_WorkerModal", vm);
+        }
 
     }
 }

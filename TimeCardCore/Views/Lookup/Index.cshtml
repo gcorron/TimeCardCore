@@ -2,12 +2,12 @@
     <form id="formLookup" asp-controller="Lookup" asp-action="Index" method="POST" class="form-horizontal" autocomplete="off" >
         <row>
             <div class="col-4 offset-4">
-                <select asp-for="SelectedGroupId" asp-items="Model.LookupGroups" class="form-control"></select>
+                <select asp-for="SelectedGroupId" asp-items="Model.LookupGroups" class="form-select"></select>
             </div>
         </row>
         <div class="card mt-3" style="display:@(Model.SelectedGroupId == 0 ? "none;" : "normal;")">
             <div id="divEdit" class="card-body @(Model.EditLookup.Id == 0 ? "bg-success" : "bg-info" )">
-                <div class="form-row">
+                <div class="row">
                     <input asp-for="EditLookup.Id" type="hidden" />
                     <label asp-for="EditLookup.Descr" class="col-form-label col-md-1">Descr</label>
                     <div class="col-md-4"><input asp-for="EditLookup.Descr" class="form-control" /></div>

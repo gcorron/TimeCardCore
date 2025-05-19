@@ -4,7 +4,7 @@
 
     <div class="card mt-3">
         <div class="card-body @(Model.EditAppUser.UserId == 0 ? "bg-success" : "bg-info" )" id="divEdit">
-            <div class="form-group form-row">
+            <div class="row mb-2">
                 <div class="col-md-1 col-form-label text-right">User</div>
                 <div class="col-md-2">
                     <input asp-for="EditAppUser.UserId" type="hidden" />
@@ -30,7 +30,7 @@
                     <button class="btn btn-default fa fa-2x fa-check" value="Save" name="buttonValue" title="Save"></button>
                 </div>
             </div>
-            <div class="form-group form-row">
+            <div class="row mb-2">
                 <div class="col-md-1 col-form-label text-right">Roles</div>
                 <div class="col-md-10">
                     <div class="form-check-inline"></div>

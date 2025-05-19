@@ -56,6 +56,9 @@ namespace TimeCard.Repo.Repos
         {
             ExecuteSp("uContractor", contractor);
         }
-
+        public IEnumerable<AppUser>GetUsers()
+        {
+            return QuerySp<AppUser>("sUsers", null);
+        }
     }
 }
