@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -17,28 +20,42 @@ namespace TimeCardCore.Infrastructure
     {
         private readonly string _item;
         private readonly string _action;
-        public AuthorizeActionFilter(string item, string action)
+        private readonly HttpContext _context;
+        private readonly IJWTokenAuthentication _jwTokenAuthentication;
+        public AuthorizeActionFilter(IHttpContextAccessor accessor, IJWTokenAuthentication jWTokenAuthentication, string item, string action)
         {
             _item = item;
             _action = action;
+            _context = accessor.HttpContext;
+            _jwTokenAuthentication = jWTokenAuthentication;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            bool isAuthorized = false;
-            var user = context.HttpContext.User;
-            if (user.Identity.IsAuthenticated)
+            var identity = _context.Session.GetObjectFromJson<TimeCard.Domain.Identity>("Identity");
+            if (identity != null)
             {
-                isAuthorized = user.Claims.Where(x => x.Value == _item).Any();
-                if (!isAuthorized)
+                if (!_jwTokenAuthentication.ValidateToken(identity.Token, 1))
                 {
-                    context.Result = new UnauthorizedResult();
+                    identity = null;
                 }
             }
-            else
+            if (identity != null)
             {
-                context.Result = new ForbidResult();
+                var isAuthorized = identity.Roles.Any(x => x == _item);
+                if (isAuthorized)
+                {
+                    return;
+                }
             }
+            context.Result = new RedirectToRouteResult(new RouteValueDictionary(
+                new
+                {
+                    controller = "Account",
+                    action = "Login",
+                    UserHost = context.HttpContext.Request.GetEncodedPathAndQuery()
+                }
+            ));
         }
     }
 }

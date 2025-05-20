@@ -18,6 +18,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using TimeCard.Repo.Repos;
+using TimeCardCore.Infrastructure;
 
 namespace TimeCardCore
 {
@@ -37,6 +38,7 @@ namespace TimeCardCore
             }
             cb.Build();
 
+            builder.Configuration.AddUserSecrets("991e0c92-0b06-4565-a192-684c18b518c9");
 
             builder.Services.AddRazorPages();
             builder.Host.UseSerilog((ctx, loggerConfiguration) =>
@@ -45,18 +47,17 @@ namespace TimeCardCore
             });
             builder.Services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
             builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-.AddCookie(options =>
-    {
-        options.ExpireTimeSpan = TimeSpan.FromDays(1);
-        options.SlidingExpiration = true;
-        options.Cookie.IsEssential = true; // Required for GDPR compliance
-        options.Cookie.HttpOnly = true; // Prevent JavaScript access
-        options.Cookie.SameSite = SameSiteMode.Strict; // Prevent CSRF
-    });
-
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession();
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            builder.Services.AddSingleton<IJWTokenAuthentication, JWTokenAuthentication>();
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "forbidScheme";
+                options.DefaultForbidScheme = "forbidScheme";
+            });
             builder.Services.AddAuthorization();
+
             var mvc = builder.Services.AddControllersWithViews()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null)
                 .AddRazorRuntimeCompilation();
@@ -79,6 +80,7 @@ namespace TimeCardCore
             app.UseWebSockets();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
             string defaultController = "Account";

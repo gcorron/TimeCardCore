@@ -39,11 +39,11 @@ namespace TimeCardCore.Controllers
 
             var vm = new PaymentViewModel
             {
-                SelectedContractorId = ContractorId,
+                SelectedContractorId = CurrentIdentity.ContractorId,
                 IsAdmin = false,
-                EditPayment = new TimeCard.Domain.Payment { ContractorId = ContractorId },
-                PaymentSummary = _PaymentRepo.GetSummary(ContractorId, DateRef.CurrentWorkCycle),
-                Payments = _PaymentRepo.GetPayments(ContractorId)
+                EditPayment = new TimeCard.Domain.Payment { ContractorId = CurrentIdentity.ContractorId },
+                PaymentSummary = _PaymentRepo.GetSummary(CurrentIdentity.ContractorId, DateRef.CurrentWorkCycle),
+                Payments = _PaymentRepo.GetPayments(CurrentIdentity.ContractorId)
             };
             prepPayment(vm);
             return View(vm);
@@ -101,7 +101,7 @@ namespace TimeCardCore.Controllers
             {
                 var job = _JobRepo.GetJob(vm.SelectedJobId);
                 vm.SelectedJob = job;
-                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" },1).Union(_BudgetRepo.GetBudgetsForJob(vm.SelectedJobId, ContractorId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
+                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" },1).Union(_BudgetRepo.GetBudgetsForJob(vm.SelectedJobId, CurrentIdentity.ContractorId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
                 if (vm.SelectedBudgetId != 0)
                 {
                     vm.SelectedBudget = _BudgetRepo.GetBudget(vm.SelectedBudgetId).Descr;

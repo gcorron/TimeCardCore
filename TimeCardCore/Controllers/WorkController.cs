@@ -38,7 +38,7 @@ namespace TimeCardCore.Controllers
 
         public IActionResult Index()
         {
-            var vm = new Models.WorkViewModel { SelectedContractorId = ContractorId, SelectedContractorDescr = CurrentUsername, EditPermission = UserContractorId == ContractorId ? "Full" : "Admin" };
+            var vm = new Models.WorkViewModel { SelectedContractorId = CurrentIdentity.ContractorId, SelectedContractorDescr = CurrentIdentity.UserName, EditPermission = CurrentIdentity.ContractorId == CurrentIdentity.UserContractorId ? "Full" : "Admin" };
             prepWork(vm);
             return View(vm);
         }
@@ -140,7 +140,7 @@ namespace TimeCardCore.Controllers
             vm.WorkTypeBudget = workTypes.FirstOrDefault(x => x.Val == "BUDG").Id == vm.EditWork.WorkType;
             if (vm.WorkTypeBudget)
             {
-                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" }, 1).Union(_BudgetRepo.GetBudgets(true, ContractorId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
+                vm.Budgets = Enumerable.Repeat(new SelectListItem { Text = "- Select -", Value = "0" }, 1).Union(_BudgetRepo.GetBudgets(true, CurrentIdentity.ContractorId).Select(x => new SelectListItem { Text = x.Descr, Value = x.BudgetId.ToString() }));
             }
             else
             {

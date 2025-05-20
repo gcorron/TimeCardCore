@@ -96,7 +96,8 @@ namespace TimeCardCore.Controllers
         [HttpPost]
         public IActionResult Logout()
         {
-            HttpContext.SignOutAsync();
+            _httpContext.Session.Clear();
+            CurrentIdentity = null;
             return Ok();
         }
 
@@ -124,30 +125,17 @@ namespace TimeCardCore.Controllers
                         message = "Please change your password.";
                         break;
                     case "OK":
-                        var roles = _AppUserRepo.GetUserRoles(login.UserId).Where(x => x.Active).Select(x => x.Descr);
-                        var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, vm.UserName),
-                        new Claim("UserId",login.UserId.ToString()),
-                        new Claim("FullName",login.UserFullName),
-                        new Claim("ContractorId",login.ContractorId.ToString()),
-                        new Claim("UserContractorId",login.ContractorId.ToString())
-                    };
-                        foreach (var role in roles)
+                        var identity = new Identity
                         {
-                            claims.Add(new Claim("Role", role));
-                        }
-                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                        var authProperties = new AuthenticationProperties
-                        {
-                            IsPersistent = vm.RememberMe,
-                            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8),
-                            AllowRefresh = true
+                            Roles = _AppUserRepo.GetUserRoles(login.UserId).Where(x => x.Active).Select(x => x.Descr),
+                            UserId = login.UserId,
+                            UserFullName = login.UserFullName,
+                            UserName = vm.UserName,
+                            ContractorId = login.ContractorId,
+                            UserContractorId = login.ContractorId,
+                            Token = NewToken(login.UserId, vm.UserName, 10 * 60 * 60)
                         };
-                        HttpContext.SignInAsync(
-                            CookieAuthenticationDefaults.AuthenticationScheme,
-                            new ClaimsPrincipal(claimsIdentity),
-                            authProperties);
+                        CurrentIdentity = identity;
                         return Redirect("/Work");
                     case "NO":
                         message = "User Name or Password is invalid.";
@@ -164,39 +152,14 @@ namespace TimeCardCore.Controllers
         [Authorize("Admin","Read")]
         public async void ChangeWorker(int contractorId, string contractorName)
         {
-            var user = HttpContext.User;
-            if (user == null || !user.Identity.IsAuthenticated)
+            var identity = CurrentIdentity;
+            if (identity == null)
             {
                 return;
             }
-
-            var identity = (ClaimsIdentity)user.Identity;
-            var newIdentity = new ClaimsIdentity(identity.Claims,
-                CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var existingPreference = newIdentity.FindFirst("ContractorId");
-            if (existingPreference != null)
-            {
-                newIdentity.RemoveClaim(existingPreference);
-            }
-            existingPreference = newIdentity.FindFirst("ContractorName");
-            if (existingPreference != null)
-            {
-                newIdentity.RemoveClaim(existingPreference);
-            }
-
-            newIdentity.AddClaim(new Claim("ContractorId", contractorId.ToString()));
-            newIdentity.AddClaim(new Claim("ContractorName", contractorName.ToString()));
-
-
-            var newPrincipal = new ClaimsPrincipal(newIdentity);
-            var authProperties = await HttpContext.AuthenticateAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                newPrincipal,
-                authProperties.Properties); // Reuse original properties
-
+            identity.ContractorId = contractorId;
+            identity.ContractorName = contractorName;
+            CurrentIdentity = identity;
         }
 
         [HttpPost]
@@ -221,7 +184,7 @@ namespace TimeCardCore.Controllers
         }
         public ActionResult SelectWorker()
         {
-            var vm = _AppUserRepo.GetUsers().Select(x => new SelectListItem { Text = x.UserName, Value = x.ContractorId.ToString(), Selected = x.ContractorId == ContractorId });
+            var vm = _AppUserRepo.GetUsers().Select(x => new SelectListItem { Text = x.UserName, Value = x.ContractorId.ToString(), Selected = x.ContractorId == CurrentIdentity.ContractorId });
             return PartialView("_WorkerModal", vm);
         }
 

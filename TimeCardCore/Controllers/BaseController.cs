@@ -7,6 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using TimeCard.Repo.Repos;
 using Microsoft.AspNetCore.Http;
+using System.Net.Http;
+using TimeCard.Domain;
+using TimeCardCore.Infrastructure;
 
 namespace TimeCardCore.Controllers
 {
@@ -16,30 +19,36 @@ namespace TimeCardCore.Controllers
         protected readonly LookupRepo LookupRepo;
         
         private readonly IWebHostEnvironment  _webHostEnvironment;
-        private readonly int _curUserId;
-        private readonly int _curContractorId;
-        private readonly string _curUserName;
-        private readonly int _curUserContractorId;
+        protected readonly HttpContext _httpContext;
+        private Identity _identity;
+        protected IConfiguration _config;
 
-        protected int CurrentUserId { get => _curUserId; }
-        protected string CurrentUsername { get => _curUserName; }
-        protected int ContractorId { get => _curContractorId; }
-        protected int UserContractorId { get => _curUserContractorId; }
         public BaseController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base()
         {
             ConnString = config.GetConnectionString("Timecard");
             LookupRepo = new LookupRepo(ConnString);
             _webHostEnvironment = webHostEnvironment;
-            var user = httpContextAccessor.HttpContext.User;
-            if (user.Identity.IsAuthenticated)
+            _httpContext = httpContextAccessor.HttpContext;
+            _config = config;
+            var user = httpContextAccessor.HttpContext?.User;
+        }
+        protected Identity? CurrentIdentity
+        {
+            get
             {
-                _curUserName = user.Claims.Where(x => x.Type == "FullName").Single().Value;
-                _curUserId = int.Parse(user.Claims.Where(x => x.Type == "UserId").Single().Value);
-                _curContractorId = int.Parse(user.Claims.Where(x => x.Type == "ContractorId").Single().Value);
-                _curUserContractorId = int.Parse(user.Claims.Where(x => x.Type == "UserContractorId").Single().Value);
+                if (_identity == null)
+                {
+
+                    _identity = _httpContext.Session.GetObjectFromJson<Identity>("Identity");
+                }
+                return _identity;
+            }
+            set
+            {
+                _identity = value;
+                _httpContext.Session.SetObjectAsJson("Identity", value);
             }
         }
-
         public string WebRootPath
         {
             get
@@ -47,6 +56,10 @@ namespace TimeCardCore.Controllers
                 return _webHostEnvironment.WebRootPath;
             }
 
+        }
+        public string NewToken(int id, string name, int expireSeconds)
+        {
+            return new JWTokenAuthentication(_config).GenerateToken(id, name, expireSeconds);
         }
     }
 

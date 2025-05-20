@@ -1,5 +1,11 @@
-﻿@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
+﻿@using Microsoft.AspNetCore.Http;
+@using TimeCardCore.Infrastructure;
+@using TimeCard.Domain;
+@inject IHttpContextAccessor HttpContextAccessor;
+
+@{
+    var identity = HttpContextAccessor.HttpContext.Session.GetObjectFromJson<Identity>("Identity");
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,49 +28,47 @@
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Work" asp-action="Index">TimeCard</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                aria-expanded="false" aria-label="Toggle navigation">
+                        aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    @{
-                        var user = HttpContextAccessor.HttpContext.User;
-                        if (user.Identity.IsAuthenticated)
+                    @if (identity != null)
+                    {
+                        var fullName = identity.UserFullName;
+                        string worker = "";
+                        if (identity.Roles.Any(x => x == "Admin"))
                         {
-                            var fullName = user.Claims.FirstOrDefault(x => x.Type == "FullName")?.Value;
-                            string worker = "";
-                            if (user.Claims.FirstOrDefault(x => x.Type == "Role")?.Value == "Admin")
+                            worker = identity.ContractorName;
+                            if (worker != null)
                             {
-                                worker = user.Claims.FirstOrDefault(x => x.Type == "ContractorName")?.Value ?? "";
-                                if (worker != "")
-                                {
-                                    worker = " for " + worker;
-                                }
-                                <button id="btnWorker" class="btn btn-sm btn-light ms-2">Worker</button>
+                                worker = " for " + worker;
                             }
-                            <button id="btnLogOut" class="btn btn-sm btn-light ms-2">Log Out</button>
-                            <p class="nav navbar-text navbar-right">@($"{fullName}{worker}")</p>
+                            <button id="btnWorker" class="btn btn-sm btn-light ms-2">Worker</button>
                         }
+                        <button id="btnLogOut" class="btn btn-sm btn-light ms-2">Log Out</button>
+                        <p class="nav navbar-text navbar-right">@($"{fullName}{worker}")</p>
+
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item nav-select-work">
+                                <a class="nav-link" asp-area="" asp-controller="Work" asp-action="Index">Work</a>
+                            </li>
+                            <li class="nav-item nav-select-budget">
+                                <a class="nav-link" asp-area="" asp-controller="Budget" asp-action="Index">Budget</a>
+                            </li>
+                            <li class="nav-item nav-select-payment">
+                                <a class="nav-link" asp-area="" asp-controller="Payment" asp-action="Index">Payment</a>
+                            </li>
+                            <li class="nav-item nav-select-job">
+                                <a class="nav-link" asp-area="" asp-controller="Job" asp-action="Index">Jobs</a>
+                            </li>
+                            <li class="nav-item nav-select-account">
+                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Index">Account</a>
+                            </li>
+                            <li class="nav-item nav-select-lookup">
+                                <a class="nav-link" asp-area="" asp-controller="Lookup" asp-action="Index">Lookups</a>
+                            </li>
+                        </ul>
                     }
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item nav-select-work">
-                        <a class="nav-link" asp-area="" asp-controller="Work" asp-action="Index">Work</a>
-                    </li>
-                    <li class="nav-item nav-select-budget">
-                        <a class="nav-link" asp-area="" asp-controller="Budget" asp-action="Index">Budget</a>
-                    </li>
-                    <li class="nav-item nav-select-payment">
-                        <a class="nav-link" asp-area="" asp-controller="Payment" asp-action="Index">Payment</a>
-                    </li>
-                    <li class="nav-item nav-select-job">
-                        <a class="nav-link" asp-area="" asp-controller="Job" asp-action="Index">Jobs</a>
-                    </li>
-                    <li class="nav-item nav-select-account">
-                        <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Index">Account</a>
-                    </li>
-                    <li class="nav-item nav-select-lookup">
-                        <a class="nav-link" asp-area="" asp-controller="Lookup" asp-action="Index">Lookups</a>
-                    </li>
-                </ul>
                 </div>
             </div>
         </nav>
@@ -94,7 +98,7 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         $(function () {
-            var controller = '@(HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString() )';
+            var controller = '@(HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString())';
             controller = controller.toLowerCase();
             var $li = $("li.nav-select-" + controller);
             if (($li).length) {

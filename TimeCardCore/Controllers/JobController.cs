@@ -26,7 +26,7 @@ namespace TimeCardCore.Controllers
         [HttpGet]
         public ActionResult Index()
         {
-            var vm = new Models.JobViewModel { ContractorId = ContractorId, Active = true};
+            var vm = new Models.JobViewModel { ContractorId = CurrentIdentity.ContractorId, Active = true};
             return Index(vm);
         }
 
@@ -39,7 +39,7 @@ namespace TimeCardCore.Controllers
                 vm.ChangeActiveJobId = 0;
                 ModelState.Clear();
             }
-            vm.Jobs = _JobRepo.GetJobStart(ContractorId, vm.Active);
+            vm.Jobs = _JobRepo.GetJobStart(CurrentIdentity.ContractorId, vm.Active);
             return View(vm);
         }
 

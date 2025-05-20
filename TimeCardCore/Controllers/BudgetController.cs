@@ -20,6 +20,7 @@ using TimeCardCore.Models;
 
 namespace TimeCardCore.Controllers
 {
+    [Authorize("Contractor", "Read")]
     public class BudgetController : BaseController
     {
         private readonly BudgetRepo _BudgetRepo;
@@ -66,14 +67,14 @@ namespace TimeCardCore.Controllers
 
         private void prepBudget(BudgetViewModel vm)
         {
-            vm.Budgets = _BudgetRepo.GetBudgets(vm.Active, ContractorId);
+            vm.Budgets = _BudgetRepo.GetBudgets(vm.Active, CurrentIdentity.ContractorId);
             if (vm.Action == "Edit")
             {
-                vm.EditBudget = vm.Budgets.FirstOrDefault(x => x.BudgetId == vm.ActionId) ?? new Budget { Active = true, ContractorId = ContractorId };
+                vm.EditBudget = vm.Budgets.FirstOrDefault(x => x.BudgetId == vm.ActionId) ?? new Budget { Active = true, ContractorId = CurrentIdentity.ContractorId };
             }
             else
             {
-                vm.EditBudget = new Budget { Active = true, ContractorId = ContractorId };
+                vm.EditBudget = new Budget { Active = true, ContractorId = CurrentIdentity.ContractorId };
             }
             vm.Jobs = Enumerable.Repeat(new SelectListItem { Text="- Select -", Value="0"},1).Union(_JobRepo.GetJobStart(0).OrderBy(x => x.Descr).Select(x => new SelectListItem { Text = x.Descr, Value = x.JobId.ToString() }));
             vm.BudgetTypes = _LookupRepo.GetLookups("Budget","- Select -").OrderBy(x => x.Val).Select(x => new SelectListItem { Text = x.Descr, Value = x.Id.ToString() });
