@@ -34,6 +34,10 @@ namespace TimeCard.Repo.Repos
         {
             return QuerySp<WorkExtended>("sWorkExtended", new { contractorId, workDay, payCycle });
         }
+        public IEnumerable<WorkExtended> GetWorkByDate(int contractorId, DateTime startDate, DateTime endDate)
+        {
+            return QuerySp<WorkExtended>("sWorkByDate", new { contractorId, startDate, endDate });
+        }
 
         public IEnumerable<WorkSummary> GetWorkSummary(int contractorId, bool formal_descr = false)
         {

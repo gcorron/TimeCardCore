@@ -48,7 +48,7 @@ namespace TimeCardCore
             builder.Services.AddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
             builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
             builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddSession();
+            builder.Services.AddSession(options => { options.IdleTimeout = TimeSpan.FromHours(48); });
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton<IJWTokenAuthentication, JWTokenAuthentication>();
             builder.Services.AddAuthentication(options =>

@@ -27,6 +27,7 @@ namespace TimeCard.Domain
         public string Project { get; set; }
         public string BillType { get; set; }
         public string WorkType { get; set; }
+        public string BudgetType { get; set; }
         public string Contractor { get; set; }
     }
 }
