@@ -23,10 +23,12 @@ namespace TimeCardCore.Controllers
     public class AccountController : BaseController
     {
         private readonly AppUserRepo _AppUserRepo;
+        private readonly IJWTokenAuthentication _jwTokenAuthentication;
 
-        public AccountController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor) : base(config, webHostEnvironment, httpContextAccessor)
+        public AccountController(IConfiguration config, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor, IJWTokenAuthentication jwTokenAuthentication) : base(config, webHostEnvironment, httpContextAccessor)
         {
             _AppUserRepo = new AppUserRepo(ConnString);
+            _jwTokenAuthentication = jwTokenAuthentication;
         }
 
         [HttpGet]
@@ -186,6 +188,18 @@ namespace TimeCardCore.Controllers
         {
             var vm = _AppUserRepo.GetUsers().Select(x => new SelectListItem { Text = x.UserName, Value = x.ContractorId.ToString(), Selected = x.ContractorId == CurrentIdentity.ContractorId });
             return PartialView("_WorkerModal", vm);
+        }
+        [HttpGet]
+        public IActionResult SessionCheck()
+        {
+            var identity = HttpContext.Session.GetObjectFromJson<TimeCard.Domain.Identity>("Identity");
+
+            if (identity == null || !_jwTokenAuthentication.ValidateToken(identity.Token, 1))
+            {
+                return Unauthorized(); // or return Json(new { valid = false });
+            }
+
+            return Ok(new { valid = true, time = DateTime.UtcNow });
         }
 
     }

@@ -32,13 +32,8 @@ namespace TimeCardCore
             var builder = WebApplication.CreateBuilder(args);
             var cb = new ConfigurationBuilder();
             cb.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            if (env == "Production")
-            {
-                cb.AddJsonFile("appsettings.Production.json");
-            }
+            cb.AddEnvironmentVariables();
             cb.Build();
-
-            builder.Configuration.AddUserSecrets("991e0c92-0b06-4565-a192-684c18b518c9");
 
             builder.Services.AddRazorPages();
             builder.Host.UseSerilog((ctx, loggerConfiguration) =>
@@ -51,11 +46,6 @@ namespace TimeCardCore
             builder.Services.AddSession(options => { options.IdleTimeout = TimeSpan.FromHours(48); });
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             builder.Services.AddSingleton<IJWTokenAuthentication, JWTokenAuthentication>();
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = "forbidScheme";
-                options.DefaultForbidScheme = "forbidScheme";
-            });
             builder.Services.AddAuthorization();
 
             var mvc = builder.Services.AddControllersWithViews()

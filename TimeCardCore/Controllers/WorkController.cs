@@ -214,7 +214,7 @@ public class WorkController : BaseController
     private void GenerateTimeCards(int contractorId, string name, int cycle, List<string> fileList, int weeks)
     {
         var templateFile = new FileInfo($"{WebRootPath}\\Content\\BigRockTemplate.xlsx");
-        DateTime startDate = DateRef.GetWorkDate(cycle).AddDays(1);// start on Sunday, not Saturday
+        DateTime startDate = DateRef.GetWorkDate(cycle);
         DateTime endDate = startDate.AddDays(weeks * 7 - 1);
         var entries = _WorkRepo.GetWorkByDate(contractorId, startDate, endDate);
         var workEntries = entries
@@ -243,11 +243,17 @@ public class WorkController : BaseController
                         sheet.Cells[8, 11].Value = startDate.AddDays(i * 7 + 6);
                         sheet.Cells[8, 1].Value = first.Contractor;
                         sheet.Cells[8, 7].Value = first.Client;
+                        sheet.Cells[8, 9].Value = "Richard Bravo";
                         sheet.Cells[19, 12].Value = DateTime.Today;
                         sheet.Cells[19, 2].Value = first.Contractor;
+                        for (int j = 0; j < 7; j++)
+                        {
+                            sheet.Cells[10, 7 + j].Value = startDate.AddDays(i * 7 + j).ToString("ddd");
+                            sheet.Cells[11, 7 + j].Value = startDate.AddDays(i * 7 + j).ToString("MM/dd");
+                        }
                         foreach (var entry in tc.Where(x => x.WorkDate >= startDate.AddDays(i * 7) && x.WorkDate <= startDate.AddDays(6 + i * 7)).Reverse())
                         {
-                            var wd = (int)entry.WorkDate.DayOfWeek;
+                            var wd = (entry.WorkDate - startDate.AddDays(i * 7)).Days;
                             sheet.InsertRow(currentRow, 1);
                             sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow, 1]);
                             sheet.Cells[currentRow, 2].Value = entry.Descr;
