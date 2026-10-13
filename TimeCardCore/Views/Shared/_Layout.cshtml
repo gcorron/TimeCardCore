@@ -100,6 +100,20 @@
         $(function () {
             var controller = '@(HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString())';
             controller = controller.toLowerCase();
+            if (controller != "account") {
+                setInterval(checkSession, 1 * 60 * 1000);
+            }
+            function checkSession() {
+                fetch('/Account/SessionCheck', { credentials: 'include' })  // important: include cookies
+                    .then(response => {
+                        if (response.status === 401 || response.status === 302) {
+                             window.location = '/Account/Login';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Session check failed', err);
+                    });
+            }
             var $li = $("li.nav-select-" + controller);
             if (($li).length) {
                 $li.addClass("active");

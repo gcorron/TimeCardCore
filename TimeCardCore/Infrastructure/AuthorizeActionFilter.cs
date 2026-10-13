@@ -42,7 +42,13 @@ namespace TimeCardCore.Infrastructure
             }
             if (identity != null)
             {
-                var isAuthorized = identity.Roles.Any(x => x == _item);
+                var requiredRoles = (_item ?? string.Empty)
+    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+    .Select(r => r.Trim());
+
+                var isAuthorized = requiredRoles.Any(req =>
+                    identity.Roles.Any(userRole => userRole == req));
+
                 if (isAuthorized)
                 {
                     return;

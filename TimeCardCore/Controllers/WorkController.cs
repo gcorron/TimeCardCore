@@ -16,10 +16,10 @@ using Microsoft.AspNetCore.Hosting;
 using TimeCardCore.Infrastructure;
 using System.Text.RegularExpressions;
 using OfficeOpenXml.Core;
+using TimeCard.Domain;
 
 namespace TimeCardCore.Controllers;
 
-[Authorize("Contractor", "Read")]
 public class WorkController : BaseController
 {
     private readonly WorkRepo _WorkRepo;
@@ -36,14 +36,19 @@ public class WorkController : BaseController
         _AppUserRepo = new AppUserRepo(ConnString);
         _BudgetRepo = new BudgetRepo(ConnString);
     }
-
+    [Authorize("Contractor,Bot","Read")]
     public IActionResult Index()
     {
+        if (CurrentIdentity.ContractorId == 0)
+        {
+            return View("_NoContractor");
+        }
         var vm = new Models.WorkViewModel { SelectedContractorId = CurrentIdentity.ContractorId, SelectedContractorDescr = CurrentIdentity.UserName, EditPermission = CurrentIdentity.ContractorId == CurrentIdentity.UserContractorId ? "Full" : "Admin" };
         prepWork(vm);
         return View(vm);
     }
 
+    [Authorize("Contractor", "Read")]
     [HttpPost]
     public ActionResult Index(Models.WorkViewModel vm, string buttonValue)
     {
@@ -160,27 +165,27 @@ public class WorkController : BaseController
         return Enumerable.Range(0, 15).Select(x => new SelectListItem { Text = $"{DateRef.PeriodEndDate(thisCycle - x):MM/dd/yyyy}", Value = (thisCycle - x).ToString() });
     }
 
-    [HttpPost]
+    [Authorize("Contractor", "Read")]
     public ActionResult WorkSummary(int contractorId)
     {
         var summary = _WorkRepo.GetWorkSummary(contractorId);
         return PartialView("_WorkSummaryPeriod", summary);
     }
 
-    [HttpPost]
+    [Authorize("Contractor", "Read")]
     public ActionResult WorkSummaryJob(int contractorId)
     {
         var summary = _WorkRepo.GetWorkSummary(contractorId);
         return PartialView("_WorkSummaryJob", summary);
     }
 
-    [HttpPost]
+    [Authorize("Contractor", "Read")]
     public ActionResult WorkDetailJob(int contractorId, int jobId)
     {
         var detail = _WorkRepo.GetWorkJobDetail(contractorId, jobId);
         return PartialView("_WorkDetailJob", detail);
     }
-    [HttpPost]
+    [Authorize("Contractor", "Read")]
     public ActionResult GenerateDocs(int contractorId, int cycle, int weeks)
     {
         var templateFile = new FileInfo($"{WebRootPath}\\Content\\TimeCardTemplates.xlsx");
@@ -189,7 +194,7 @@ public class WorkController : BaseController
             string name = LookupRepo.GetLookups("Contractor").Where(x => x.Id == contractorId).FirstOrDefault()?.Descr;
 
             var fileList = new List<string>();
-            GenerateTimeCards(contractorId, name, cycle, fileList, weeks);
+            GenerateTimeCards(contractorId, cycle, fileList, weeks);
             GenerateTimeBooks(contractorId, name, templateFile, cycle, fileList);
             if (!fileList.Any())
             {
@@ -206,41 +211,52 @@ public class WorkController : BaseController
         }
 
     }
-
+    [Authorize("Bot", "Read")]
+    public ActionResult GetOpenTimeCards(string contractor, string client)
+    {
+        var fileList = new List<string>();
+        var contractorId = LookupRepo.GetLookups("Contractor").Where(x => x.Descr == contractor).FirstOrDefault()?.Id ?? 0;
+        GenerateTimeCards(contractorId, 0, fileList, 0, client);
+        return PhysicalFile(fileList[0], "application/ms-excel");
+    }
     private string GetTimeCardTabName(int week)
     {
         return $"C1 W{week + 1}";
     }
-    private void GenerateTimeCards(int contractorId, string name, int cycle, List<string> fileList, int weeks)
+    private void GenerateTimeCards(int contractorId, int cycle, List<string> fileList, int weeks, string clientName = null)
     {
         var templateFile = new FileInfo($"{WebRootPath}\\Content\\BigRockTemplate.xlsx");
+        bool allOpen = weeks == 0;
         DateTime startDate = DateRef.GetWorkDate(cycle);
         DateTime endDate = startDate.AddDays(weeks * 7 - 1);
-        var entries = _WorkRepo.GetWorkByDate(contractorId, startDate, endDate);
-        var workEntries = entries
-            .Where(x => x.BillType == "TC")
-            .GroupBy(g => new { g.ClientId, g.ProjectId });
+        var entries = _WorkRepo.GetWorkByDate(contractorId, startDate, endDate, allOpen).Where(x => x.BillType == "TC" && (clientName == null || x.Client == clientName));
+        if (allOpen)
+        {
+            startDate = entries.Min(x => x.CycleStartDate);
+            endDate = entries.Max(x => x.CycleStartDate).AddDays(13);
+        }
+        var weekGroups = entries
+            .GroupBy(g => new { g.ClientId, g.Client, g.WorkWeekDate });
+        int tabNo = 0;
+        int blankRow = 14;
 
         using (var xlTemplate = new ExcelPackage(templateFile))
         {
-            foreach (var tc in workEntries) // client and project group
+            foreach (var client in weekGroups.GroupBy(x => x.Key.ClientId))
             {
-                int blankRow = 14;
-                //create a new time card and populate it
                 var file = new FileInfo($"{DocsFolder()}\\bigrock_tc_gc_{startDate:MMddyy}_{endDate:MMddyy}.xlsx");
                 System.IO.File.Delete(file.FullName);
                 ExcelWorksheet sheet = null;
                 using (var package = new ExcelPackage(file, templateFile))
                 {
                     var workBook = package.Workbook;
-                    var first = tc.First();
-                    ExcelWorksheet templateSheet;
-                    for (int i = 0; i < weeks; i++)
+                    foreach (var wk in weekGroups.Where(x => x.Key.ClientId == client.Key))
                     {
+                        var first = wk.First();
+                        var sheetName = GetTimeCardTabName(tabNo);
                         int currentRow = blankRow + 1;
-                        string tabName = GetTimeCardTabName(i);
-                        sheet = package.Workbook.Worksheets[i];
-                        sheet.Cells[8, 11].Value = startDate.AddDays(i * 7 + 6);
+                        sheet = package.Workbook.Worksheets[sheetName];
+                        sheet.Cells[8, 11].Value = first.WorkWeekDate;
                         sheet.Cells[8, 1].Value = first.Contractor;
                         sheet.Cells[8, 7].Value = first.Client;
                         sheet.Cells[8, 9].Value = "Richard Bravo";
@@ -248,12 +264,12 @@ public class WorkController : BaseController
                         sheet.Cells[19, 2].Value = first.Contractor;
                         for (int j = 0; j < 7; j++)
                         {
-                            sheet.Cells[10, 7 + j].Value = startDate.AddDays(i * 7 + j).ToString("ddd");
-                            sheet.Cells[11, 7 + j].Value = startDate.AddDays(i * 7 + j).ToString("MM/dd");
+                            sheet.Cells[10, 7 + j].Value = first.CycleStartDate.AddDays(j).ToString("ddd");
+                            sheet.Cells[11, 7 + j].Value = first.CycleStartDate.AddDays(j).ToString("MM/dd");
                         }
-                        foreach (var entry in tc.Where(x => x.WorkDate >= startDate.AddDays(i * 7) && x.WorkDate <= startDate.AddDays(6 + i * 7)).Reverse())
+                        foreach (var entry in entries.Where(x => x.WorkWeekDate == wk.Key.WorkWeekDate).Reverse())
                         {
-                            var wd = (entry.WorkDate - startDate.AddDays(i * 7)).Days;
+                            var wd = entry.WorkWeekDay;
                             sheet.InsertRow(currentRow, 1);
                             sheet.Cells[blankRow, 1, blankRow, 20].Copy(sheet.Cells[currentRow, 1]);
                             sheet.Cells[currentRow, 2].Value = entry.Descr;
@@ -262,10 +278,17 @@ public class WorkController : BaseController
                             sheet.Cells[currentRow, 7 + wd].Value = entry.Hours;
                         }
                         sheet.DeleteRow(blankRow);
+                        sheet.Calculate();
+                        tabNo++;
                     }
-                    sheet.Calculate();
-                    if (package.Workbook.Worksheets.Any())
+                    if (tabNo > 0)
                     {
+                        while(tabNo < 8)
+                        {
+                            var sn = GetTimeCardTabName(tabNo);
+                            workBook.Worksheets.Delete(sn);
+                            tabNo++;
+                        }
                         package.Workbook.Calculate();
                         package.Save();
                         fileList.Add(package.File.FullName);
@@ -274,7 +297,7 @@ public class WorkController : BaseController
             }
         }
     }
-
+    [Authorize("Contractor", "Read")]
     public void GenerateTimeBooks(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
     {
         var workEntries = _WorkRepo.GetWorkExtended(contractorId, cycle, false).Where(x => "SOW TB".Contains(x.BillType))
@@ -317,7 +340,7 @@ public class WorkController : BaseController
             }
         }
     }
-
+    [Authorize("Contractor", "Read")]
     public void GenerateSummary(int contractorId, string name, FileInfo templateFile, int cycle, List<string> fileList)
     {
         var workSummary = _WorkRepo.GetWorkSummary(contractorId, true).Where(x => x.WorkPeriod < DateRef.CurrentWorkCycle);
@@ -406,7 +429,7 @@ public class WorkController : BaseController
             }
         }
     }
-
+    [Authorize("Contractor", "Read")]
     public async Task<ActionResult> DownloadTimeDocs([FromBody] ZipDownload download)
     {
 
