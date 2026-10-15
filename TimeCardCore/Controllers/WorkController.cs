@@ -212,12 +212,16 @@ public class WorkController : BaseController
 
     }
     [Authorize("Bot", "Read")]
+
     public ActionResult GetOpenTimeCards(string contractor, string client)
     {
         var fileList = new List<string>();
         var contractorId = LookupRepo.GetLookups("Contractor").Where(x => x.Descr == contractor).FirstOrDefault()?.Id ?? 0;
         GenerateTimeCards(contractorId, 0, fileList, 0, client);
-        return PhysicalFile(fileList[0], "application/ms-excel");
+        var path = fileList[0];
+        return PhysicalFile(path,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            Path.GetFileName(path));
     }
     private string GetTimeCardTabName(int week)
     {
@@ -236,16 +240,24 @@ public class WorkController : BaseController
             endDate = entries.Max(x => x.CycleStartDate).AddDays(13);
         }
         var weekGroups = entries
-            .GroupBy(g => new { g.ClientId, g.Client, g.WorkWeekDate });
+            .GroupBy(g => new { g.ClientId, g.Client, g.WorkWeekStartDate });
+
         int tabNo = 0;
         int blankRow = 14;
 
         using (var xlTemplate = new ExcelPackage(templateFile))
         {
+            var filename = $"{DocsFolder()}\\bigrock_tc_gc_";
+            foreach(var wk in weekGroups)
+            {
+                var first = wk.First();
+                filename += $"{first.WorkWeekDate:MMddyy}_";
+            };
+            filename = filename.TrimEnd('_') + ".xlsx";
+            var file = new FileInfo(filename);
+            System.IO.File.Delete(file.FullName);
             foreach (var client in weekGroups.GroupBy(x => x.Key.ClientId))
             {
-                var file = new FileInfo($"{DocsFolder()}\\bigrock_tc_gc_{startDate:MMddyy}_{endDate:MMddyy}.xlsx");
-                System.IO.File.Delete(file.FullName);
                 ExcelWorksheet sheet = null;
                 using (var package = new ExcelPackage(file, templateFile))
                 {
@@ -264,10 +276,10 @@ public class WorkController : BaseController
                         sheet.Cells[19, 2].Value = first.Contractor;
                         for (int j = 0; j < 7; j++)
                         {
-                            sheet.Cells[10, 7 + j].Value = first.CycleStartDate.AddDays(j).ToString("ddd");
-                            sheet.Cells[11, 7 + j].Value = first.CycleStartDate.AddDays(j).ToString("MM/dd");
+                            sheet.Cells[10, 7 + j].Value = first.WorkWeekStartDate.AddDays(j).ToString("ddd");
+                            sheet.Cells[11, 7 + j].Value = first.WorkWeekStartDate.AddDays(j).ToString("MM/dd");
                         }
-                        foreach (var entry in entries.Where(x => x.WorkWeekDate == wk.Key.WorkWeekDate).Reverse())
+                        foreach (var entry in entries.Where(x => x.WorkWeekStartDate == wk.Key.WorkWeekStartDate).Reverse())
                         {
                             var wd = entry.WorkWeekDay;
                             sheet.InsertRow(currentRow, 1);
